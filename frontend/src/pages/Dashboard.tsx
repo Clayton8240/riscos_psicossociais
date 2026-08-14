@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { RiskMatrix, RiskData } from '../components/RiskMatrix';
 
 interface AnalyticsPayload {
@@ -18,6 +19,7 @@ export function Dashboard() {
 
   const [aiReport, setAiReport] = useState<string | null>(null);
   const [loadingReport, setLoadingReport] = useState(false);
+  const [showMethodology, setShowMethodology] = useState(false);
 
   const handleGenerateReport = async () => {
     if (!id) return;
@@ -101,6 +103,15 @@ export function Dashboard() {
     }
   };
 
+  const handleCopyLink = (surveyId: string) => {
+    const publicUrl = `${window.location.origin}/survey/${surveyId}`;
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      alert('Link público copiado para a área de transferência!');
+    }).catch(() => {
+      alert('Falha ao copiar o link. Você pode copiar manualmente: ' + publicUrl);
+    });
+  };
+
   if (loading) {
     return <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>Carregando Dashboard...</div>;
   }
@@ -135,6 +146,12 @@ export function Dashboard() {
                   <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>Respostas: {survey._count?.submissions || 0}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    onClick={() => handleCopyLink(survey.id)}
+                    style={{ padding: '8px 16px', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    🔗 Copiar Link
+                  </button>
                   <button 
                     onClick={() => handleDeleteSurvey(survey.id)}
                     style={{ padding: '8px 16px', backgroundColor: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -197,9 +214,18 @@ export function Dashboard() {
       <RiskMatrix data={data.riskBySector} />
 
       <div style={{ marginTop: '40px', padding: '24px', backgroundColor: '#fdf4ff', borderRadius: '12px', border: '1px solid #fbcfe8' }}>
-        <h3 style={{ margin: '0 0 16px 0', color: '#86198f', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          📊 Relatório Analítico
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <h3 style={{ margin: 0, color: '#86198f', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            📊 Relatório Analítico
+          </h3>
+          <button 
+            onClick={() => setShowMethodology(true)}
+            style={{ padding: '6px 12px', backgroundColor: '#f3e8ff', color: '#6b21a8', border: '1px solid #d8b4fe', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
+            title="Aprenda sobre o Alfa de Cronbach e Desvio Padrão"
+          >
+            ⓘ Metodologia e Cálculos
+          </button>
+        </div>
         <p style={{ color: '#701a75', marginBottom: '16px' }}>
           Gere um relatório analítico profundo sobre os dados desta pesquisa. O relatório destaca os pontos críticos e fornece insights estatísticos com base nas respostas dos colaboradores.
         </p>
@@ -223,12 +249,64 @@ export function Dashboard() {
           </button>
         )}
 
+        {loadingReport && <p style={{ color: '#86198f' }}>Analisando dados...</p>}
         {aiReport && (
-          <div style={{ marginTop: '24px', padding: '24px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb', whiteSpace: 'pre-wrap', lineHeight: '1.6', color: '#374151', fontFamily: 'system-ui, sans-serif' }}>
-            {aiReport}
+          <div style={{ marginTop: '24px', padding: '24px', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #fbcfe8', color: '#1f2937', fontSize: '15px', lineHeight: '1.6' }}>
+            <ReactMarkdown>{aiReport}</ReactMarkdown>
           </div>
         )}
       </div>
+
+      {showMethodology && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+        }}>
+          <div style={{ backgroundColor: '#fff', padding: '32px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ margin: 0, color: '#111827' }}>Metodologia Estatística 📐</h2>
+              <button onClick={() => setShowMethodology(false)} style={{ border: 'none', background: 'transparent', fontSize: '20px', cursor: 'pointer' }}>✖</button>
+            </div>
+            
+            <p style={{ color: '#4b5563', lineHeight: '1.6' }}>
+              Nosso motor utiliza cálculos matemáticos robustos, garantindo 100% de privacidade offline e precisão clínica, para analisar a saúde psicossocial do ambiente.
+            </p>
+
+            <h4 style={{ margin: '16px 0 8px 0', color: '#1f2937' }}>1. Risco Populacional (Média μ)</h4>
+            <p style={{ color: '#4b5563', fontSize: '14px', lineHeight: '1.5' }}>
+              Calculamos a média aritmética de todo o grupo cruzando Probabilidade $\\times$ Impacto de cada resposta isolada. 
+              Gera um farol direcional: Saudável, Atenção ou Crítico.
+            </p>
+
+            <h4 style={{ margin: '16px 0 8px 0', color: '#1f2937' }}>2. Polarização de Equipes (Desvio Padrão σ)</h4>
+            <p style={{ color: '#4b5563', fontSize: '14px', lineHeight: '1.5' }}>
+              Medimos o quanto as respostas se distanciam da média (variância). Se um setor tem uma média "normal", mas o <strong>Desvio Padrão é alto</strong>, disparamos um alerta de <strong>Polarização</strong>: isso significa que metade do time está perfeitamente bem, e a outra metade está à beira de um burnout silencioso.
+            </p>
+
+            <h4 style={{ margin: '16px 0 8px 0', color: '#1f2937' }}>3. Confiabilidade (Alfa de Cronbach α)</h4>
+            <p style={{ color: '#4b5563', fontSize: '14px', lineHeight: '1.5' }}>
+              Utilizado na psicometria, o Alfa de Cronbach mede a consistência interna das respostas (variando de 0 a 1).
+              Se as pessoas dão respostas muito incoerentes para o mesmo fator gerador de estresse, o Alfa cai.
+              <br/><strong>&ge; 0.8:</strong> Questionário Excelente. <br/><strong>&lt; 0.6:</strong> Inaceitável (As perguntas ou respostas não são precisas).
+            </p>
+
+            <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#f3f4f6', borderRadius: '6px' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                Auditoria Rigorosa: Nenhuma matriz de risco é enviada para servidores de Inteligência Artificial em nuvem. Todo o processamento é interno e imutável.
+              </p>
+            </div>
+
+            <div style={{ marginTop: '24px', textAlign: 'right' }}>
+              <button 
+                onClick={() => setShowMethodology(false)}
+                style={{ padding: '8px 16px', backgroundColor: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                Fechar Metodologia
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
