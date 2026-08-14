@@ -1,0 +1,24 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { routes } from './routes';
+
+dotenv.config();
+
+const app = express();
+
+// Configuração de CORS permissiva para desenvolvimento
+app.use(cors({
+  origin: '*', // Em produção, altere para os domínios do Frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json());
+
+app.use(routes);
+
+const PORT = process.env.PORT || 3333;
+
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+});

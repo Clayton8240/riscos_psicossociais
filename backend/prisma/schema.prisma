@@ -1,0 +1,135 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  document  String   @unique // CNPJ ou similar
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  surveys     Survey[]
+  actionPlans ActionPlan[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String?  // Opcional para quem usa SSO
+  ssoId     String?  @unique // ID do Active Directory/SSO
+  role      Role     @default(EMPLOYEE)
+  
+  tenantId  String?
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum Role {
+  SUPERADMIN  // Dono do SaaS (pode gerenciar Tenants)
+  ADMIN       // Admin do RH da empresa (Tenant)
+  EMPLOYEE    // Funcionário respondendo pesquisa
+}
+
+model Survey {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  isActive    Boolean  @default(true)
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  questions   Question[]
+  submissions Submission[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("surveys")
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  surveyId    String
+  survey      Survey   @relation(fields: [surveyId], references: [id])
+  text        String
+  
+  // Ex: "PROBABILITY_IMPACT", "MULTIPLE_CHOICE", "TEXT"
+  type        String   @default("PROBABILITY_IMPACT") 
+  
+  answers     Answer[]
+
+  @@map("questions")
+}
+
+// Representa a participação de um colaborador em uma pesquisa
+model Submission {
+  id            String   @id @default(uuid())
+  surveyId      String
+  survey        Survey   @relation(fields: [surveyId], references: [id])
+  
+  // Anonimato (LGPD): Guarda apenas o Setor, sem identificar a pessoa
+  sector        String?  // Ex: "TI", "RH", "Vendas"
+
+  answers       Answer[]
+
+  createdAt     DateTime @default(now())
+
+  @@map("submissions")
+}
+
+// Representa a resposta a uma pergunta específica
+model Answer {
+  id             String     @id @default(uuid())
+  submissionId   String
+  submission     Submission @relation(fields: [submissionId], references: [id])
+  questionId     String
+  question       Question   @relation(fields: [questionId], references: [id])
+
+  // Valores para a matriz de risco (ex: 1 a 5)
+  probabilityScore Int?
+  impactScore      Int?
+  
+  // Se for texto livre ou outro tipo
+  textValue        String?
+
+  @@map("answers")
+}
+
+enum PlanStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+model ActionPlan {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  responsible String
+  deadline    DateTime
+  status      PlanStatus @default(OPEN)
+  sector      String
+
+  tenantId    String
+  tenant      Tenant     @relation(fields: [tenantId], references: [id])
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("action_plans")
+}
