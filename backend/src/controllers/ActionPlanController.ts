@@ -5,7 +5,7 @@ export class ActionPlanController {
   
   // POST /action-plans
   async create(req: Request, res: Response) {
-    const { title, description, responsible, deadline, sector } = req.body;
+    const { title, description, responsible, deadline, sector, assignedToId } = req.body;
     const tenantId = req.user?.tenantId;
 
     if (!tenantId) return res.status(403).json({ error: 'Acesso negado' });
@@ -18,6 +18,7 @@ export class ActionPlanController {
           responsible,
           deadline: new Date(deadline),
           sector,
+          assignedToId,
           tenantId
         }
       });
@@ -31,13 +32,27 @@ export class ActionPlanController {
   // GET /action-plans
   async list(req: Request, res: Response) {
     const tenantId = req.user?.tenantId;
+    const role = req.user?.role;
+    const userId = req.user?.id;
 
     if (!tenantId) return res.status(403).json({ error: 'Acesso negado' });
 
     try {
+      const whereClause: any = { tenantId };
+      
+      // Se for líder, só vê os planos atribuídos a ele
+      if (role === 'LEADER') {
+        whereClause.assignedToId = userId;
+      }
+
       const actionPlans = await prisma.actionPlan.findMany({
-        where: { tenantId },
-        orderBy: { deadline: 'asc' }
+        where: whereClause,
+        orderBy: { deadline: 'asc' },
+        include: {
+          assignedTo: {
+            select: { id: true, name: true, email: true }
+          }
+        }
       });
       return res.json(actionPlans);
     } catch (error) {
@@ -49,7 +64,7 @@ export class ActionPlanController {
   // PATCH /action-plans/:id/status
   async updateStatus(req: Request, res: Response) {
     const { id } = req.params;
-    const { status } = req.body; // OPEN, IN_PROGRESS, RESOLVED
+    const { status, resolutionNotes } = req.body; // OPEN, IN_PROGRESS, RESOLVED
     const tenantId = req.user?.tenantId;
 
     if (!['OPEN', 'IN_PROGRESS', 'RESOLVED'].includes(status)) {
@@ -61,9 +76,14 @@ export class ActionPlanController {
       const existingPlan = await prisma.actionPlan.findFirst({ where: { id, tenantId } });
       if (!existingPlan) return res.status(404).json({ error: 'Plano não encontrado' });
 
+      const dataToUpdate: any = { status };
+      if (resolutionNotes !== undefined) {
+        dataToUpdate.resolutionNotes = resolutionNotes;
+      }
+
       const updatedPlan = await prisma.actionPlan.update({
         where: { id },
-        data: { status }
+        data: dataToUpdate
       });
       return res.json(updatedPlan);
     } catch (error) {

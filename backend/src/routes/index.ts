@@ -6,6 +6,8 @@ import { surveyRoutes } from './surveyRoutes';
 import { analyticsRoutes } from './analyticsRoutes';
 import { actionPlanRoutes } from './actionPlanRoutes';
 import { superAdminRoutes } from './superAdminRoutes';
+import { settingsRoutes } from './settingsRoutes';
+import { userRoutes } from './userRoutes';
 
 const routes = Router();
 
@@ -24,6 +26,12 @@ routes.use('/', analyticsRoutes);
 
 // Rotas de Planos de Ação
 routes.use('/', actionPlanRoutes);
+
+// Rotas de Usuários
+routes.use('/', userRoutes);
+
+// Rotas de Configurações
+routes.use('/', settingsRoutes);
 
 routes.get('/me', authMiddleware, tenantMiddleware, (req, res) => {
   return res.json({ 

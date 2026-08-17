@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.actionPlanRoutes = void 0;
+const express_1 = require("express");
+const ActionPlanController_1 = require("../controllers/ActionPlanController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const tenantMiddleware_1 = require("../middlewares/tenantMiddleware");
+const actionPlanRoutes = (0, express_1.Router)();
+exports.actionPlanRoutes = actionPlanRoutes;
+const actionPlanController = new ActionPlanController_1.ActionPlanController();
+actionPlanRoutes.use(authMiddleware_1.authMiddleware, tenantMiddleware_1.tenantMiddleware);
+actionPlanRoutes.post('/action-plans', actionPlanController.create);
+actionPlanRoutes.get('/action-plans', actionPlanController.list);
+actionPlanRoutes.patch('/action-plans/:id/status', actionPlanController.updateStatus);
+actionPlanRoutes.delete('/action-plans/:id', actionPlanController.delete);

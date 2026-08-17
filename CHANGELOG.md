@@ -17,6 +17,11 @@ O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0
 
 ### Modificado
 - Fluxo de exclusão de pesquisas (`Cascade Delete` via código) para remover todas as respostas, submissões e perguntas conectadas a uma pesquisa antes de removê-la, corrigindo a trava impeditiva de banco de dados por segurança estrutural (Foreign Key Constraint).
+- **Refatoração UI/UX Completa (Fase 5):**
+  - Aplicação de nova paleta de cores corporativa: fundo Cinza Claro (#f9fafb), painéis brancos, títulos Índigo Profundo (#312e81) e ações Azul Royal (#2563eb).
+  - Modernização do layout das páginas `Dashboard.tsx`, `ActionPlans.tsx` (Kanban layout), `SurveyManager.tsx`, `SurveyResponse.tsx`, `Login.tsx`, e `SuperAdmin.tsx`.
+  - Melhoria significativa na formatação do **Relatório Analítico Executivo** (`AnalyticsController.ts`), utilizando tabelas Markdown e emojis para organização clara dos níveis de risco.
+  - Adição de botões para voltar ao Dashboard na tela de `SurveyManager` e clarificação do fluxo para obtenção do link público de compartilhamento.
 
 ## [1.0.0] - Lançamento Inicial
 

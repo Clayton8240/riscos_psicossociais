@@ -109,7 +109,10 @@ export class SurveyController {
       const survey = await prisma.survey.findUnique({
         where: { id },
         include: {
-          questions: true
+          questions: true,
+          tenant: {
+            select: { sectors: true }
+          }
         }
       });
 
@@ -121,7 +124,10 @@ export class SurveyController {
         return res.status(400).json({ error: 'Esta pesquisa foi encerrada' });
       }
 
-      return res.json(survey);
+      return res.json({
+        ...survey,
+        sectors: JSON.parse(survey.tenant?.sectors || '[]')
+      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Erro ao buscar pesquisa' });

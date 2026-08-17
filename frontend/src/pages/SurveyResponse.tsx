@@ -13,6 +13,7 @@ interface Survey {
   description: string | null;
   isActive: boolean;
   questions: Question[];
+  sectors: string[];
 }
 
 interface AnswerInput {
@@ -106,59 +107,75 @@ export function SurveyResponse() {
 
   if (submitted) {
     return (
-      <div style={{ maxWidth: '600px', margin: '40px auto', padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-        <h2 style={{ color: '#22c55e' }}>Obrigado pela sua participação!</h2>
-        <p style={{ color: '#4b5563', marginTop: '10px' }}>Suas respostas foram registradas com sucesso e de forma totalmente anônima.</p>
+      <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ maxWidth: '600px', width: '100%', padding: '48px 32px', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
+          <h2 style={{ color: '#065f46', fontSize: '28px', fontWeight: '800', marginBottom: '12px' }}>Obrigado pela sua participação!</h2>
+          <p style={{ color: '#4b5563', fontSize: '16px', lineHeight: '1.6' }}>Suas respostas foram registradas com sucesso e de forma <strong style={{ color: '#312e81' }}>totalmente anônima</strong>.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <header style={{ marginBottom: '30px' }}>
-        <h1 style={{ fontSize: '24px', color: '#111827', marginBottom: '8px' }}>{survey.title}</h1>
-        <p style={{ color: '#6b7280', fontSize: '14px' }}>{survey.description}</p>
-      </header>
+    <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <header style={{ marginBottom: '40px', textAlign: 'center' }}>
+          <h1 style={{ fontSize: '32px', color: '#312e81', marginBottom: '12px', fontWeight: '800' }}>{survey.title}</h1>
+          <p style={{ color: '#6b7280', fontSize: '16px', lineHeight: '1.6' }}>{survey.description}</p>
+        </header>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        
-        {/* Setor (LGPD - Anônimo) */}
-        <div style={{ padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-          <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#374151' }}>
-            Qual o seu Setor/Departamento? *
-          </label>
-          <select 
-            value={sector}
-            onChange={(e) => setSector(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '16px' }}
-            required
-          >
-            <option value="" disabled>Selecione seu setor...</option>
-            <option value="RH">Recursos Humanos (RH)</option>
-            <option value="TI">Tecnologia (TI)</option>
-            <option value="Vendas">Vendas / Comercial</option>
-            <option value="Operacoes">Operações</option>
-            <option value="Financeiro">Financeiro</option>
-            <option value="Outros">Outros</option>
-          </select>
-          <small style={{ display: 'block', marginTop: '8px', color: '#6b7280', fontSize: '12px' }}>
-            * Sua resposta é anônima. O setor é usado apenas para análises estatísticas da empresa.
-          </small>
+         <div style={{ backgroundColor: '#eff6ff', padding: '16px 20px', borderRadius: '12px', marginBottom: '32px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+          <span style={{ fontSize: '24px' }}>🛡️</span>
+          <div>
+            <h4 style={{ margin: '0 0 4px 0', color: '#1e40af', fontSize: '16px', fontWeight: '700' }}>Privacidade e Anonimato Garantidos</h4>
+            <p style={{ margin: 0, color: '#1e3a8a', fontSize: '14px', lineHeight: '1.5' }}>
+              Suas respostas são <strong>100% confidenciais e anônimas</strong>. O sistema não rastreia IP, e-mail, nome, dispositivo ou qualquer dado que possa identificá-lo. O departamento que você seleciona é utilizado exclusivamente para criar estatísticas agregadas globais da empresa, e não para análises individuais.
+            </p>
+          </div>
         </div>
 
-        {/* Perguntas */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {survey.questions.map((q, index) => (
-            <div key={q.id} style={{ paddingBottom: '24px', borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ fontSize: '16px', marginBottom: '16px', color: '#1f2937' }}>
-                {index + 1}. {q.text}
-              </h3>
+        <form onSubmit={handleSubmit}>
+          {/* Identificação de Setor */}
+          <div style={{ padding: '32px', backgroundColor: '#ffffff', borderRadius: '16px', border: 'none', marginBottom: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <label style={{ display: 'block', marginBottom: '12px', fontSize: '18px', fontWeight: '700', color: '#111827' }}>
+              Qual o seu Setor/Departamento? *
+            </label>
+            <select 
+              required
+              value={sector}
+              onChange={(e) => setSector(e.target.value)}
+              style={{ width: '100%', padding: '14px 16px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '16px', outline: 'none', appearance: 'none', backgroundColor: '#f9fafb', color: '#111827' }}
+            >
+            <option value="" disabled>Selecione seu setor...</option>
+            {survey.sectors && survey.sectors.length > 0 ? (
+              survey.sectors.map(s => <option key={s} value={s}>{s}</option>)
+            ) : (
+              <>
+                <option value="Administrativo">Administrativo</option>
+                <option value="Operacional">Operacional</option>
+                <option value="Comercial">Comercial</option>
+                <option value="TI">TI</option>
+                <option value="RH">RH</option>
+                <option value="Geral">Geral</option>
+              </>
+            )}
+            </select>
+          </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Perguntas */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {survey.questions.map((q, index) => (
+              <div key={q.id} style={{ padding: '32px', backgroundColor: '#ffffff', borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <h3 style={{ fontSize: '18px', marginBottom: '24px', color: '#1f2937', fontWeight: '700', lineHeight: '1.4' }}>
+                  <span style={{ color: '#2563eb', marginRight: '4px' }}>{index + 1}.</span> {q.text}
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {/* Escala de Probabilidade */}
                 <div>
                   <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold', color: '#4b5563' }}>Frequência / Probabilidade:</p>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="responsive-flex" style={{ gap: '8px' }}>
                     {[
                       { val: 1, label: "Raramente (1)" },
                       { val: 2, label: "Às vezes (2)" },
@@ -170,14 +187,17 @@ export function SurveyResponse() {
                         onClick={() => handleAnswerChange(q.id, 'prob', val)}
                         style={{
                           flex: 1,
-                          padding: '12px',
-                          border: '1px solid',
-                          borderColor: answers[q.id]?.prob === val ? '#2563eb' : '#d1d5db',
-                          backgroundColor: answers[q.id]?.prob === val ? '#eff6ff' : '#fff',
-                          color: answers[q.id]?.prob === val ? '#1d4ed8' : '#374151',
-                          borderRadius: '6px',
-                          fontWeight: 'bold',
-                          cursor: 'pointer'
+                          padding: '14px 8px',
+                          border: '2px solid',
+                          borderColor: answers[q.id]?.prob === val ? '#2563eb' : '#e5e7eb',
+                          backgroundColor: answers[q.id]?.prob === val ? '#eff6ff' : '#ffffff',
+                          color: answers[q.id]?.prob === val ? '#1d4ed8' : '#4b5563',
+                          borderRadius: '8px',
+                          fontWeight: '700',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: answers[q.id]?.prob === val ? '0 2px 4px rgba(37,99,235,0.1)' : 'none'
                         }}
                       >
                         {label}
@@ -189,7 +209,7 @@ export function SurveyResponse() {
                 {/* Escala de Impacto */}
                 <div>
                   <p style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 'bold', color: '#4b5563' }}>Impacto Emocional (O quanto te afeta):</p>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div className="responsive-flex" style={{ gap: '8px' }}>
                     {[
                       { val: 1, label: "Pouco (1)" },
                       { val: 2, label: "Médio (2)" },
@@ -201,14 +221,17 @@ export function SurveyResponse() {
                         onClick={() => handleAnswerChange(q.id, 'imp', val)}
                         style={{
                           flex: 1,
-                          padding: '12px',
-                          border: '1px solid',
-                          borderColor: answers[q.id]?.imp === val ? '#ef4444' : '#d1d5db',
-                          backgroundColor: answers[q.id]?.imp === val ? '#fef2f2' : '#fff',
-                          color: answers[q.id]?.imp === val ? '#b91c1c' : '#374151',
-                          borderRadius: '6px',
-                          fontWeight: 'bold',
-                          cursor: 'pointer'
+                          padding: '14px 8px',
+                          border: '2px solid',
+                          borderColor: answers[q.id]?.imp === val ? '#ef4444' : '#e5e7eb',
+                          backgroundColor: answers[q.id]?.imp === val ? '#fef2f2' : '#ffffff',
+                          color: answers[q.id]?.imp === val ? '#b91c1c' : '#4b5563',
+                          borderRadius: '8px',
+                          fontWeight: '700',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          boxShadow: answers[q.id]?.imp === val ? '0 2px 4px rgba(239,68,68,0.1)' : 'none'
                         }}
                       >
                         {label}
@@ -219,25 +242,28 @@ export function SurveyResponse() {
               </div>
             </div>
           ))}
-        </div>
+          </div>
 
-        <button 
-          type="submit"
-          style={{
-            padding: '16px',
-            backgroundColor: '#111827',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            marginTop: '16px'
-          }}
-        >
-          Enviar Respostas (Anônimo)
-        </button>
-      </form>
+          <button 
+            type="submit"
+            style={{
+              padding: '18px',
+              backgroundColor: '#2563eb',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '18px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              marginTop: '8px',
+              boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            Enviar Respostas (Anônimo)
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

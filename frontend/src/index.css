@@ -1,0 +1,107 @@
+/* Global Styles and Reset */
+* {
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+body {
+  margin: 0;
+  background-color: #f3f4f6;
+}
+
+/* Base Inputs & Buttons reset */
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* =========================================
+   Responsive Utilities
+   ========================================= */
+
+/* Grid */
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.responsive-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.responsive-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Flex */
+.responsive-flex {
+  display: flex;
+  gap: 24px;
+}
+
+.mobile-toggle {
+  display: none !important;
+}
+
+/* Table Wrapper for horizontal scroll */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* =========================================
+   Mobile Breakpoint (< 768px)
+   ========================================= */
+@media (max-width: 768px) {
+  /* Grids turn to single column */
+  .responsive-grid-2, 
+  .responsive-grid-3, 
+  .responsive-grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Flex rows turn to columns */
+  .responsive-flex {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  /* Hide/Show utilities */
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-toggle {
+    display: block !important;
+  }
+
+  /* Layout Sidebar */
+  .layout-sidebar {
+    position: fixed !important;
+    top: 64px;
+    left: 0;
+    height: calc(100vh - 64px);
+    width: 250px !important;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  }
+
+  .layout-sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Paddings */
+  .mobile-p-16 {
+    padding: 16px !important;
+  }
+
+  /* Header scaling */
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+}

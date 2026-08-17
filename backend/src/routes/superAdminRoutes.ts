@@ -11,5 +11,7 @@ superAdminRoutes.use(authMiddleware, superAdminMiddleware);
 
 superAdminRoutes.get('/tenants', superAdminController.listTenants);
 superAdminRoutes.post('/tenants', superAdminController.createTenant);
+superAdminRoutes.delete('/tenants/:id', superAdminController.deleteTenant);
+superAdminRoutes.post('/tenants/:id/impersonate', superAdminController.impersonateTenant);
 
 export { superAdminRoutes };

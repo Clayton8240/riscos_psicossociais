@@ -195,58 +195,58 @@ export class AnalyticsController {
       const topCriticalQuestions = questionsComputed.filter(q => q.avg >= 4).slice(0, 3);
 
       // --- CONSTRUÇÃO DO RELATÓRIO MATEMÁTICO ---
-      let report = `## Relatório Analítico Executivo\n\n`;
-      report += `Este relatório foi gerado automaticamente a partir do **Motor Estatístico Determinístico**.\n\n`;
+      let report = `# 📊 Relatório Analítico Executivo\n\n`;
+      report += `> *Este relatório baseia-se num **Motor Estatístico Determinístico** e não partilha dados com IAs externas.*\n\n---\n\n`;
 
       // 1. Confiabilidade da Pesquisa (Alfa de Cronbach)
-      report += `### 1. Confiabilidade dos Dados (Alfa de Cronbach)\n`;
-      report += `O Alfa de Cronbach ($\\alpha$) calcula a consistência interna das respostas. Um questionário confiável garante que os problemas relatados são consistentes.\n`;
+      report += `## 1. Confiabilidade dos Dados (Alfa de Cronbach)\n\n`;
+      report += `O Alfa de Cronbach (α) calcula a **consistência interna** das respostas. Um questionário confiável garante que os problemas relatados são consistentes.\n\n`;
       if (submissionsMatrix.length >= 2 && survey.questions.length >= 2) {
-        report += `- **Índice Alfa ($\\alpha$):** ${cronbachAlpha.toFixed(3)}\n`;
-        report += `- **Classificação:** ${alphaInterpretation}\n`;
-        report += `\n> 💡 **O que isso significa?** ${alphaExplanation}\n\n`;
+        report += `- **Índice Alfa (α):** \`${cronbachAlpha.toFixed(3)}\`\n`;
+        report += `- **Classificação:** ${alphaInterpretation}\n\n`;
+        report += `> 💡 **O que isso significa?** ${alphaExplanation}\n\n`;
       } else {
-        report += `- *(Amostra insuficiente para calcular o Alfa de Cronbach. Mínimo: 2 perguntas e 2 respostas completas).* \n\n`;
+        report += `> *(Amostra insuficiente para calcular o Alfa de Cronbach. São necessárias no mínimo 2 respostas completas).* \n\n`;
       }
 
       // 2. Visão Geral
-      report += `### 2. Visão Global da Empresa\n`;
-      report += `A média de risco psicossocial global da empresa atual é de **${globalStats.mean.toFixed(2)}/9**. `;
+      report += `---\n\n## 2. Visão Global da Empresa\n\n`;
+      report += `A média de risco psicossocial global é de **${globalStats.mean.toFixed(2)}/9**. `;
       
       if (globalStats.mean >= 6) {
-        report += `Este é um indicador **Crítico**, sugerindo que o ambiente de trabalho geral está gerando forte desgaste emocional ou sobrecarga.\n\n`;
+        report += `🔴 **Status Crítico:** Sugere que o ambiente de trabalho geral está a gerar forte desgaste emocional ou sobrecarga.\n\n`;
       } else if (globalStats.mean >= 3) {
-        report += `Este é um indicador de nível **Atenção**, sugerindo que há pontos de atrito no dia a dia que podem escalar se não forem acompanhados.\n\n`;
+        report += `🟡 **Status de Atenção:** Sugere que há pontos de atrito no dia a dia que podem escalar se não forem acompanhados.\n\n`;
       } else if (globalStats.mean > 0) {
-        report += `Este é um indicador **Saudável**, demonstrando que, de forma geral, o ambiente apresenta riscos controlados.\n\n`;
+        report += `🟢 **Status Saudável:** Demonstra que, de forma geral, o ambiente apresenta riscos controlados.\n\n`;
       } else {
         report += `*(Ainda não há dados suficientes para uma média geral consistente).* \n\n`;
       }
 
       // Alerta de Polarização Global
       if (globalStats.isPolarized) {
-        report += `> ⚠️ **Aviso de Polarização Global:** O Desvio Padrão global é alto (${globalStats.standardDeviation.toFixed(2)}). Isso significa que a média esconde uma realidade onde há colaboradores em condições excelentes, enquanto outros estão em situação de risco extremo.\n\n`;
+        report += `> ⚠️ **Aviso de Polarização Global:** O Desvio Padrão é alto (\`${globalStats.standardDeviation.toFixed(2)}\`). Isso significa que a média geral esconde uma realidade onde há colaboradores em condições excelentes, enquanto outros estão em situação de risco extremo no mesmo ambiente.\n\n`;
       }
 
       // 3. Análise por Setores
-      report += `### 3. Análise por Setores\n`;
+      report += `---\n\n## 3. Análise por Setores\n\n`;
       
       if (criticalSectors.length > 0) {
         report += `**🚨 Setores em Alerta Vermelho (Risco > 6):**\n`;
         criticalSectors.forEach(s => {
-          report += `- **${s.sector}** (Média: ${s.stats.mean.toFixed(2)}`;
-          if (s.stats.isPolarized) report += ` | ⚠️ Polarizado: Desvio Padrão ${s.stats.standardDeviation.toFixed(2)}`;
+          report += `- **${s.sector}** (Média: \`${s.stats.mean.toFixed(2)}\``;
+          if (s.stats.isPolarized) report += ` | ⚠️ Polarizado: Desvio Padrão \`${s.stats.standardDeviation.toFixed(2)}\``;
           report += `)\n`;
         });
-        report += `\n*Recomendação:* Intervenção e escuta ativa imediata nestas equipes.\n\n`;
+        report += `\n> 🚨 **Recomendação Imediata:** Intervenção e escuta ativa prioritária nestas equipas.\n\n`;
       } else {
-        report += `**Nenhum setor encontra-se em risco crítico** neste levantamento.\n\n`;
+        report += `**✅ Nenhum setor encontra-se em risco crítico** neste levantamento.\n\n`;
       }
 
       if (mediumSectors.length > 0) {
-        report += `**⚠️ Setores em Atenção (Risco entre 3 e 6):**\n`;
+        report += `**🟡 Setores em Atenção (Risco entre 3 e 6):**\n`;
         mediumSectors.forEach(s => {
-          report += `- **${s.sector}** (Média: ${s.stats.mean.toFixed(2)}`;
+          report += `- **${s.sector}** (Média: \`${s.stats.mean.toFixed(2)}\``;
           if (s.stats.isPolarized) report += ` | ⚠️ Polarizado`;
           report += `)\n`;
         });
@@ -254,24 +254,31 @@ export class AnalyticsController {
       }
 
       if (lowSectors.length > 0) {
-        report += `**✅ Setores Estáveis (Risco < 3):**\n`;
-        lowSectors.forEach(s => report += `- **${s.sector}** (Média: ${s.stats.mean.toFixed(2)})\n`);
+        report += `**🟢 Setores Saudáveis (Risco < 3):**\n`;
+        lowSectors.forEach(s => {
+          report += `- **${s.sector}** (Média: \`${s.stats.mean.toFixed(2)}\`)\n`;
+        });
         report += `\n`;
       }
 
-      // 4. Fatores Críticos
-      report += `### 4. Fatores Geradores de Risco (Causa Raiz)\n`;
-      if (topCriticalQuestions.length > 0) {
-        report += `As perguntas que obtiveram os piores índices (maior risco percebido) foram:\n\n`;
-        topCriticalQuestions.forEach((q, i) => {
-          report += `${i + 1}. *"${q.text}"* (Score médio: **${q.avg.toFixed(2)}**)\n`;
-        });
-        report += `\n*Plano de Ação Sugerido:* A empresa deve focar os próximos passos diretamente em mitigar os problemas levantados por estas perguntas específicas.\n`;
-      } else {
-        report += `Nenhuma pergunta isolada obteve um score crítico nesta pesquisa.\n`;
+      if (sectorsComputed.length === 0) {
+        report += `*(Não há dados suficientes divididos por setor).* \n\n`;
       }
 
-      report += `\n---\n*Gerado em microssegundos com base em ${allDataPoints.length} respostas válidas utilizando Matemática Nativa.*`;
+      // 4. Fatores Críticos
+      report += `---\n\n## 4. Fatores Geradores de Risco (Causa Raiz)\n\n`;
+      if (topCriticalQuestions.length > 0) {
+        report += `As questões que obtiveram os **piores índices** (maior risco percebido) na pesquisa global foram:\n\n`;
+        topCriticalQuestions.forEach((q, i) => {
+          report += `**${i + 1}.** *"${q.text}"*\n`;
+          report += `└─ Score médio de Risco: \`${q.avg.toFixed(2)}\`\n\n`;
+        });
+        report += `> 🎯 **Plano de Ação:** Foque a mitigação inicial e a gestão de mudanças nos pontos levantados por estas questões específicas.\n`;
+      } else {
+        report += `> ✅ Nenhuma questão obteve um score crítico isoladamente nesta pesquisa.\n`;
+      }
+
+      report += `\n---\n<small>Gerado em microssegundos com base em **${allDataPoints.length}** dados válidos de **${survey.submissions.length}** formulários analisados via Matemática Nativa.</small>`;
 
       return res.json({ report });
     } catch (error) {

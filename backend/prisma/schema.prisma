@@ -1,6 +1,6 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 generator client {
@@ -13,6 +13,7 @@ model Tenant {
   document  String   @unique // CNPJ ou similar
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  sectors   String   @default("[\"Administrativo\",\"Operacional\",\"Comercial\",\"TI\",\"RH\",\"Geral\"]")
 
   users       User[]
   surveys     Survey[]
@@ -27,7 +28,7 @@ model User {
   email     String   @unique
   password  String?  // Opcional para quem usa SSO
   ssoId     String?  @unique // ID do Active Directory/SSO
-  role      Role     @default(EMPLOYEE)
+  role      String   @default("EMPLOYEE")
   
   tenantId  String?
   tenant    Tenant?  @relation(fields: [tenantId], references: [id])
@@ -35,13 +36,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("users")
-}
+  actionPlans ActionPlan[] // Relacionamento inverso para Planos de Ação atribuídos a este usuário
 
-enum Role {
-  SUPERADMIN  // Dono do SaaS (pode gerenciar Tenants)
-  ADMIN       // Admin do RH da empresa (Tenant)
-  EMPLOYEE    // Funcionário respondendo pesquisa
+  @@map("users")
 }
 
 model Survey {
@@ -110,20 +107,19 @@ model Answer {
   @@map("answers")
 }
 
-enum PlanStatus {
-  OPEN
-  IN_PROGRESS
-  RESOLVED
-}
-
 model ActionPlan {
   id          String     @id @default(uuid())
   title       String
   description String?
-  responsible String
+  responsible String?    // Nome em texto (legado ou para externos)
   deadline    DateTime
-  status      PlanStatus @default(OPEN)
-  sector      String
+  status      String     @default("OPEN")
+  sector      String?
+
+  assignedToId String?
+  assignedTo   User?     @relation(fields: [assignedToId], references: [id])
+  
+  resolutionNotes String? // Observações de conclusão
 
   tenantId    String
   tenant      Tenant     @relation(fields: [tenantId], references: [id])
