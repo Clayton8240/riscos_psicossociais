@@ -167,22 +167,22 @@ export function ActionPlans() {
   const resolvedPlans = plans.filter(p => p.status === 'RESOLVED');
 
   const renderCard = (plan: ActionPlan) => (
-    <div key={plan.id} style={{ backgroundColor: '#ffffff', border: 'none', borderRadius: '12px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', transition: 'transform 0.2s', position: 'relative' }}>
-      <h4 style={{ margin: '0 0 12px 0', color: '#312e81', fontSize: '18px', fontWeight: '700' }}>{plan.title}</h4>
-      <p style={{ margin: '0 0 16px 0', color: '#4b5563', fontSize: '14px', lineHeight: '1.5' }}>{plan.description}</p>
+    <div key={plan.id} style={{ backgroundColor: 'var(--bg-card)', border: 'none', borderRadius: '12px', padding: '20px', marginBottom: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', transition: 'transform 0.2s', position: 'relative' }}>
+      <h4 style={{ margin: '0 0 12px 0', color: 'var(--primary-dark)', fontSize: '18px', fontWeight: '700' }}>{plan.title}</h4>
+      <p style={{ margin: '0 0 16px 0', color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.5' }}>{plan.description}</p>
       
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
-        <span style={{ backgroundColor: '#f3f4f6', color: '#374151', padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <span style={{ backgroundColor: 'var(--bg-hover)', color: 'var(--text-secondary)', padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           🏢 {plan.sector}
         </span>
-        <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <span style={{ backgroundColor: 'var(--primary-bg)', color: 'var(--primary-hover)', padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           👤 {plan.assignedTo?.name || plan.responsible || 'Sem responsável'}
         </span>
-        <span style={{ backgroundColor: '#fef2f2', color: '#b91c1c', padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <span style={{ backgroundColor: 'var(--danger-bg)', color: 'var(--danger-text)', padding: '4px 10px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           ⏰ {new Date(plan.deadline).toLocaleDateString()}
         </span>
         {plan.resolutionNotes && (
-          <div style={{ width: '100%', marginTop: '12px', padding: '8px', backgroundColor: '#d1fae5', borderRadius: '6px', fontSize: '13px', color: '#065f46' }}>
+          <div style={{ width: '100%', marginTop: '12px', padding: '8px', backgroundColor: 'var(--success-bg)', borderRadius: '6px', fontSize: '13px', color: 'var(--success-text)' }}>
             <strong>Observações:</strong> {plan.resolutionNotes}
           </div>
         )}
@@ -192,13 +192,13 @@ export function ActionPlans() {
         {plan.status !== 'RESOLVED' && (
           <button 
             onClick={() => updateStatus(plan.id, plan.status === 'OPEN' ? 'IN_PROGRESS' : 'RESOLVED')} 
-            style={{ flex: 1, padding: '10px', backgroundColor: plan.status === 'OPEN' ? '#f59e0b' : '#10b981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', boxShadow: `0 2px 4px ${plan.status === 'OPEN' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)'}` }}
+            style={{ flex: 1, padding: '10px', backgroundColor: plan.status === 'OPEN' ? 'var(--warning)' : 'var(--success)', color: 'var(--bg-card)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', boxShadow: `0 2px 4px ${plan.status === 'OPEN' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)'}` }}
           >
             {plan.status === 'OPEN' ? 'Iniciar' : 'Concluir'}
           </button>
         )}
         {role !== 'LEADER' && (
-          <button onClick={() => handleDelete(plan.id)} style={{ padding: '10px 14px', backgroundColor: 'transparent', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
+          <button onClick={() => handleDelete(plan.id)} style={{ padding: '10px 14px', backgroundColor: 'transparent', color: 'var(--danger)', border: '1px solid var(--danger-bg)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
             Excluir
           </button>
         )}
@@ -222,7 +222,7 @@ export function ActionPlans() {
     exportToCSV('planos_de_acao.csv', headers, data);
   };
 
-  const COLORS = ['#f59e0b', '#3b82f6', '#10b981']; // OPEN, IN_PROGRESS, RESOLVED
+  const COLORS = ['var(--warning)', 'var(--primary-light)', 'var(--success)']; // OPEN, IN_PROGRESS, RESOLVED
 
   const getStatusChartData = () => {
     const counts = { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0 };
@@ -246,21 +246,21 @@ export function ActionPlans() {
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 20px', fontFamily: 'system-ui, sans-serif' }}>
       
       <div className="responsive-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h1 style={{ fontSize: '32px', color: '#312e81', fontWeight: '800' }}>Gestão de Planos de Ação</h1>
+        <h1 style={{ fontSize: '32px', color: 'var(--primary-dark)', fontWeight: '800' }}>Gestão de Planos de Ação</h1>
         <button 
           onClick={handleExportCSV}
-          style={{ padding: '10px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
+          style={{ padding: '10px 16px', backgroundColor: 'var(--success)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
         >
           Exportar CSV
         </button>
       </div>
-      <p style={{ color: '#6b7280', marginBottom: '32px', fontSize: '16px' }}>Atue sobre os riscos identificados na sua matriz e acompanhe o progresso.</p>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '32px', fontSize: '16px' }}>Atue sobre os riscos identificados na sua matriz e acompanhe o progresso.</p>
 
       {/* DASHBOARD GRÁFICOS */}
       {plans.length > 0 && (
         <div className="responsive-grid-2" style={{ marginBottom: '32px' }}>
           <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#374151' }}>Status dos Planos</h3>
+            <h3 style={{ margin: '0 0 16px 0', color: 'var(--text-secondary)' }}>Status dos Planos</h3>
             <div style={{ width: '100%', height: 200 }}>
               <ResponsiveContainer>
                 <PieChart>
@@ -276,15 +276,15 @@ export function ActionPlans() {
             </div>
           </div>
           <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
-            <h3 style={{ margin: '0 0 16px 0', color: '#374151' }}>Planos por Setor</h3>
+            <h3 style={{ margin: '0 0 16px 0', color: 'var(--text-secondary)' }}>Planos por Setor</h3>
             <div style={{ width: '100%', height: 200 }}>
               <ResponsiveContainer>
                 <BarChart data={getSectorChartData()}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} />
                   <YAxis axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip cursor={{ fill: '#f3f4f6' }} />
-                  <Bar dataKey="count" fill="#312e81" radius={[4, 4, 0, 0]} />
+                  <Tooltip cursor={{ fill: 'var(--bg-hover)' }} />
+                  <Bar dataKey="count" fill="var(--primary-dark)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -294,23 +294,23 @@ export function ActionPlans() {
 
       {/* Formulário de Criação (Só ADMIN vê) */}
       {(role === 'ADMIN' || role === 'SUPERADMIN') && (
-        <div style={{ backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', border: 'none', marginBottom: '48px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-          <h3 style={{ margin: '0 0 24px 0', color: '#312e81', fontSize: '20px', fontWeight: '700' }}>Adicionar Novo Plano</h3>
+        <div style={{ backgroundColor: 'var(--bg-card)', padding: '32px', borderRadius: '16px', border: 'none', marginBottom: '48px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <h3 style={{ margin: '0 0 24px 0', color: 'var(--primary-dark)', fontSize: '20px', fontWeight: '700' }}>Adicionar Novo Plano</h3>
           <form onSubmit={handleCreatePlan} className="responsive-grid-2">
             
             <div style={{ gridColumn: 'span 2' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Título da Ação *</label>
-              <input required type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Treinamento de Gestão de Tempo" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Título da Ação *</label>
+              <input required type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Treinamento de Gestão de Tempo" style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontSize: '15px' }} />
             </div>
 
             <div style={{ gridColumn: 'span 2' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Descrição *</label>
-              <textarea required value={description} onChange={e => setDescription(e.target.value)} rows={2} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontFamily: 'inherit', fontSize: '15px' }} />
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Descrição *</label>
+              <textarea required value={description} onChange={e => setDescription(e.target.value)} rows={2} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontFamily: 'inherit', fontSize: '15px' }} />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Setor Afetado *</label>
-              <select required value={sector} onChange={e => setSector(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', backgroundColor: '#fff' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Setor Afetado *</label>
+              <select required value={sector} onChange={e => setSector(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontSize: '15px', backgroundColor: 'var(--bg-card)' }}>
                 <option value="" disabled>Selecione um setor...</option>
                 {profileSectors.length > 0 ? (
                   profileSectors.map(s => <option key={s} value={s}>{s}</option>)
@@ -328,12 +328,12 @@ export function ActionPlans() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Responsável (Usuário) *</label>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Responsável (Usuário) *</label>
               <select required value={assignedToId} onChange={e => {
                 setAssignedToId(e.target.value);
                 const u = users.find(u => u.id === e.target.value);
                 if (u) setResponsible(u.name);
-              }} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }}>
+              }} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontSize: '15px' }}>
                 <option value="">Selecione um líder...</option>
                 {users.map(u => (
                   <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
@@ -342,12 +342,12 @@ export function ActionPlans() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Prazo Limite *</label>
-              <input required type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px' }} />
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '8px' }}>Prazo Limite *</label>
+              <input required type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontSize: '15px' }} />
             </div>
 
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' }}>
+              <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' }}>
                 + Salvar Plano
               </button>
             </div>
@@ -359,25 +359,25 @@ export function ActionPlans() {
         <div className="responsive-grid-3" style={{ alignItems: 'flex-start' }}>
           
           {/* Coluna Abertos */}
-          <div style={{ flex: 1, backgroundColor: '#f1f5f9', padding: '20px', borderRadius: '16px', minHeight: '400px' }}>
-            <h3 style={{ color: '#475569', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
-              À Fazer <span style={{ backgroundColor: '#e2e8f0', padding: '2px 8px', borderRadius: '9999px', fontSize: '14px' }}>{openPlans.length}</span>
+          <div style={{ flex: 1, backgroundColor: 'var(--bg-hover)', padding: '20px', borderRadius: '16px', minHeight: '400px' }}>
+            <h3 style={{ color: 'var(--text-muted)', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
+              À Fazer <span style={{ backgroundColor: 'var(--border-color)', padding: '2px 8px', borderRadius: '9999px', fontSize: '14px' }}>{openPlans.length}</span>
             </h3>
             {openPlans.map(renderCard)}
           </div>
 
           {/* Coluna Em Andamento */}
-          <div style={{ flex: 1, backgroundColor: '#fef3c7', padding: '20px', borderRadius: '16px', minHeight: '400px' }}>
-            <h3 style={{ color: '#92400e', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
-              Em Andamento <span style={{ backgroundColor: '#fde68a', padding: '2px 8px', borderRadius: '9999px', fontSize: '14px' }}>{inProgressPlans.length}</span>
+          <div style={{ flex: 1, backgroundColor: 'var(--warning-bg)', padding: '20px', borderRadius: '16px', minHeight: '400px' }}>
+            <h3 style={{ color: 'var(--warning-text)', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
+              Em Andamento <span style={{ backgroundColor: 'var(--warning-bg)', padding: '2px 8px', borderRadius: '9999px', fontSize: '14px' }}>{inProgressPlans.length}</span>
             </h3>
             {inProgressPlans.map(renderCard)}
           </div>
 
           {/* Coluna Concluídos */}
-          <div style={{ flex: 1, backgroundColor: '#d1fae5', padding: '20px', borderRadius: '16px', minHeight: '400px' }}>
-            <h3 style={{ color: '#065f46', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
-              Concluídos <span style={{ backgroundColor: '#a7f3d0', padding: '2px 8px', borderRadius: '9999px', fontSize: '14px' }}>{resolvedPlans.length}</span>
+          <div style={{ flex: 1, backgroundColor: 'var(--success-bg)', padding: '20px', borderRadius: '16px', minHeight: '400px' }}>
+            <h3 style={{ color: 'var(--success-text)', margin: '0 0 20px 0', fontSize: '16px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between' }}>
+              Concluídos <span style={{ backgroundColor: 'var(--success-bg)', padding: '2px 8px', borderRadius: '9999px', fontSize: '14px' }}>{resolvedPlans.length}</span>
             </h3>
             {resolvedPlans.map(renderCard)}
           </div>

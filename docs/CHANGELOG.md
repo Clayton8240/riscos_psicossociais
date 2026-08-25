@@ -3,6 +3,17 @@
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/), e este projeto adere ao [Semantic Versioning](https://semver.org/).
+## [1.2.0] - 2026-08-25
+
+### Adicionado
+- **Modo Escuro (Dark Mode):** Implementação completa de modo escuro utilizando uma paleta premium baseada em azul escuro (Dark Blue).
+- **Toggle de Tema:** Botão na barra de navegação (`Layout.tsx`) para alternar instantaneamente entre Modo Claro e Escuro.
+- Suporte à preferência de tema do usuário salva no `localStorage`, evitando flashes de luz na inicialização com a inclusão de um script no `main.tsx`.
+
+### Modificado
+- Refatoração de toda a interface do Frontend (arquivos `.tsx`) para substituir cores e estilos _hardcoded_ (inline) por **variáveis CSS dinâmicas**, tornando o design muito mais limpo, escalável e fácil de manter.
+- Ajuste das permissões e sincronização do build da aplicação para o ambiente de produção.
+
 
 ## [1.1.0] - 2026-08-14
 

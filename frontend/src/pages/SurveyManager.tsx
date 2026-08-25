@@ -115,23 +115,23 @@ export function SurveyManager() {
   if (createdSurveyId) {
     const publicLink = `${window.location.origin}/survey/${createdSurveyId}`;
     return (
-      <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ maxWidth: '800px', margin: '40px auto', padding: '40px', border: 'none', borderRadius: '16px', backgroundColor: '#ffffff', boxShadow: '0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05)' }}>
-          <h2 style={{ color: '#065f46', marginBottom: '16px', fontSize: '24px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ maxWidth: '800px', margin: '40px auto', padding: '40px', border: 'none', borderRadius: '16px', backgroundColor: 'var(--bg-card)', boxShadow: '0 10px 15px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05)' }}>
+          <h2 style={{ color: 'var(--success-text)', marginBottom: '16px', fontSize: '24px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '28px' }}>✅</span> Pesquisa Criada com Sucesso!
           </h2>
-          <p style={{ color: '#047857', marginBottom: '8px', fontSize: '16px' }}>Compartilhe este link com os colaboradores da sua empresa:</p>
+          <p style={{ color: 'var(--success-text)', marginBottom: '8px', fontSize: '16px' }}>Compartilhe este link com os colaboradores da sua empresa:</p>
           
           <div className="responsive-flex" style={{ marginTop: '24px' }}>
             <input 
               type="text" 
               readOnly 
               value={publicLink} 
-              style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid #a7f3d0', backgroundColor: '#f0fdf4', color: '#065f46', fontSize: '15px', fontWeight: '500' }}
+              style={{ flex: 1, padding: '14px', borderRadius: '8px', border: '1px solid var(--success-bg)', backgroundColor: 'var(--success-bg)', color: 'var(--success-text)', fontSize: '15px', fontWeight: '500' }}
             />
             <button 
               onClick={() => { navigator.clipboard.writeText(publicLink); alert("Copiado!"); }}
-              style={{ padding: '14px 24px', backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '15px', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)' }}
+              style={{ padding: '14px 24px', backgroundColor: 'var(--success)', color: 'var(--bg-card)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '15px', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.2)' }}
             >
               Copiar Link
             </button>
@@ -145,13 +145,13 @@ export function SurveyManager() {
                 setDescription('');
                 setQuestions([{ text: '' }]);
               }} 
-              style={{ padding: '12px 24px', background: 'transparent', border: '2px solid #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '15px' }}
+              style={{ padding: '12px 24px', background: 'transparent', border: '2px solid var(--success)', color: 'var(--success)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '15px' }}
             >
               + Criar nova pesquisa
             </button>
             <button 
               onClick={() => window.location.href = '/dashboard'}
-              style={{ padding: '12px 24px', background: '#312e81', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '15px' }}
+              style={{ padding: '12px 24px', background: 'var(--primary-dark)', border: 'none', color: 'var(--bg-card)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '15px' }}
             >
               Ir para o Dashboard
             </button>
@@ -162,71 +162,71 @@ export function SurveyManager() {
   }
 
   return (
-    <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <button 
           onClick={() => window.location.href = '/dashboard'}
-          style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', marginBottom: '24px', padding: 0, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px' }}
+          style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', marginBottom: '24px', padding: 0, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '15px' }}
         >
           &larr; Voltar para o Dashboard
         </button>
 
-        <h1 style={{ fontSize: '32px', color: '#312e81', marginBottom: '8px', fontWeight: '800' }}>Nova Pesquisa de Riscos</h1>
-        <p style={{ color: '#6b7280', marginBottom: '40px', fontSize: '16px' }}>Crie um novo formulário de avaliação psicossocial para sua empresa.</p>
+        <h1 style={{ fontSize: '32px', color: 'var(--primary-dark)', marginBottom: '8px', fontWeight: '800' }}>Nova Pesquisa de Riscos</h1>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '40px', fontSize: '16px' }}>Crie um novo formulário de avaliação psicossocial para sua empresa.</p>
 
         {/* Templates de Pesquisa */}
-        <div style={{ marginBottom: '40px', padding: '24px', backgroundColor: '#ffffff', border: 'none', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-          <h4 style={{ margin: '0 0 16px 0', color: '#312e81', fontSize: '16px', fontWeight: '700' }}>Usar Template Rápido:</h4>
+        <div style={{ marginBottom: '40px', padding: '24px', backgroundColor: 'var(--bg-card)', border: 'none', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+          <h4 style={{ margin: '0 0 16px 0', color: 'var(--primary-dark)', fontSize: '16px', fontWeight: '700' }}>Usar Template Rápido:</h4>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => applyTemplate('stress')} style={{ padding: '10px 16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#1d4ed8', fontSize: '14px' }}>
+            <button type="button" onClick={() => applyTemplate('stress')} style={{ padding: '10px 16px', backgroundColor: 'var(--primary-bg)', border: '1px solid var(--primary-bg)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: 'var(--primary-hover)', fontSize: '14px' }}>
               ⚡ Sobrecarga e Estresse
             </button>
-            <button type="button" onClick={() => applyTemplate('climate')} style={{ padding: '10px 16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#047857', fontSize: '14px' }}>
+            <button type="button" onClick={() => applyTemplate('climate')} style={{ padding: '10px 16px', backgroundColor: 'var(--success-bg)', border: '1px solid var(--success-bg)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: 'var(--success-text)', fontSize: '14px' }}>
               🤝 Clima e Relações
             </button>
-            <button type="button" onClick={() => applyTemplate('leadership')} style={{ padding: '10px 16px', backgroundColor: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#7e22ce', fontSize: '14px' }}>
+            <button type="button" onClick={() => applyTemplate('leadership')} style={{ padding: '10px 16px', backgroundColor: 'var(--purple-bg)', border: '1px solid var(--purple-bg)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: 'var(--purple)', fontSize: '14px' }}>
               🗣️ Liderança e Comunicação
             </button>
-            <button type="button" onClick={() => applyTemplate('harassment')} style={{ padding: '10px 16px', backgroundColor: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#c2410c', fontSize: '14px' }}>
+            <button type="button" onClick={() => applyTemplate('harassment')} style={{ padding: '10px 16px', backgroundColor: 'var(--warning-bg)', border: '1px solid var(--warning-bg)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: 'var(--warning-text)', fontSize: '14px' }}>
               🛡️ Segurança Psicológica
             </button>
-            <button type="button" onClick={() => applyTemplate('clear')} style={{ padding: '10px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#b91c1c', fontSize: '14px' }}>
+            <button type="button" onClick={() => applyTemplate('clear')} style={{ padding: '10px 16px', backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-bg)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: 'var(--danger-text)', fontSize: '14px' }}>
               🗑️ Limpar Formulário
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleCreateSurvey} style={{ display: 'flex', flexDirection: 'column', gap: '24px', backgroundColor: '#ffffff', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+        <form onSubmit={handleCreateSurvey} style={{ display: 'flex', flexDirection: 'column', gap: '24px', backgroundColor: 'var(--bg-card)', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
           <div>
-            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#374151', fontSize: '15px' }}>Título da Pesquisa *</label>
+            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '15px' }}>Título da Pesquisa *</label>
             <input 
               type="text" 
               value={title} 
               onChange={e => setTitle(e.target.value)} 
               placeholder="Ex: Avaliação de Clima e Carga de Trabalho 2026"
-              style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '16px', outlineColor: '#2563eb' }}
+              style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontSize: '16px', outlineColor: 'var(--primary)' }}
               required
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: '#374151', fontSize: '15px' }}>Descrição / Instruções</label>
+            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '15px' }}>Descrição / Instruções</label>
             <textarea 
               value={description} 
               onChange={e => setDescription(e.target.value)} 
               placeholder="Instruções para os colaboradores..."
               rows={3}
-              style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '16px', fontFamily: 'inherit', outlineColor: '#2563eb' }}
+              style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontSize: '16px', fontFamily: 'inherit', outlineColor: 'var(--primary)' }}
             />
           </div>
 
-          <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '32px', marginTop: '8px' }}>
+          <div style={{ borderTop: '1px solid var(--bg-hover)', paddingTop: '32px', marginTop: '8px' }}>
             <div className="responsive-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h3 style={{ margin: 0, color: '#312e81', fontSize: '18px', fontWeight: '700' }}>Perguntas (Fatores de Risco)</h3>
+              <h3 style={{ margin: 0, color: 'var(--primary-dark)', fontSize: '18px', fontWeight: '700' }}>Perguntas (Fatores de Risco)</h3>
               <button 
                 type="button" 
                 onClick={handleAddQuestion}
-                style={{ padding: '10px 16px', backgroundColor: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
+                style={{ padding: '10px 16px', backgroundColor: 'var(--primary-bg)', color: 'var(--primary)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
               >
                 + Adicionar Pergunta
               </button>
@@ -236,7 +236,7 @@ export function SurveyManager() {
               {questions.map((q, index) => (
                 <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: '14px', left: '16px', color: '#9ca3af', fontWeight: '600', fontSize: '14px' }}>
+                    <div style={{ position: 'absolute', top: '14px', left: '16px', color: 'var(--text-placeholder)', fontWeight: '600', fontSize: '14px' }}>
                       {index + 1}.
                     </div>
                     <input 
@@ -244,7 +244,7 @@ export function SurveyManager() {
                       value={q.text} 
                       onChange={e => handleQuestionChange(index, e.target.value)} 
                       placeholder={`Ex: Você se sente sobrecarregado(a) com prazos curtos?`}
-                      style={{ width: '100%', padding: '14px 14px 14px 40px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '15px', outlineColor: '#2563eb' }}
+                      style={{ width: '100%', padding: '14px 14px 14px 40px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', fontSize: '15px', outlineColor: 'var(--primary)' }}
                       required
                     />
                   </div>
@@ -252,7 +252,7 @@ export function SurveyManager() {
                     <button 
                       type="button" 
                       onClick={() => handleRemoveQuestion(index)}
-                      style={{ padding: '14px', backgroundColor: '#fef2f2', color: '#ef4444', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ padding: '14px', backgroundColor: 'var(--danger-bg)', color: 'var(--danger)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       title="Remover pergunta"
                     >
                       ✕
@@ -268,8 +268,8 @@ export function SurveyManager() {
             disabled={loading}
             style={{
               padding: '16px',
-              backgroundColor: loading ? '#9ca3af' : '#2563eb',
-              color: '#fff',
+              backgroundColor: loading ? 'var(--text-placeholder)' : 'var(--primary)',
+              color: 'var(--bg-card)',
               border: 'none',
               borderRadius: '8px',
               fontSize: '16px',
