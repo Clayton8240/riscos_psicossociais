@@ -27,12 +27,30 @@ export class SuperAdminController {
   // Edita um Tenant existente
   async updateTenant(req: Request, res: Response) {
     const { id } = req.params;
-    const { name, document, maxSubmissions } = req.body;
+    const { name, document, maxSubmissions, isActive, adminPassword } = req.body;
     try {
+      const updateData: any = { name, document };
+      if (typeof isActive !== 'undefined') {
+        updateData.isActive = isActive;
+      }
+
       let tenant = await prisma.tenant.update({
         where: { id },
-        data: { name, document }
+        data: updateData
       });
+
+      if (adminPassword) {
+        const adminUser = await prisma.user.findFirst({
+          where: { tenantId: id, role: 'ADMIN' }
+        });
+        if (adminUser) {
+          const hashedPassword = await bcrypt.hash(adminPassword, 8);
+          await prisma.user.update({
+            where: { id: adminUser.id },
+            data: { password: hashedPassword }
+          });
+        }
+      }
       
       // Atualiza o maxSubmissions da Subscription se for um Tenant Single
       if (tenant.subscriptionId && maxSubmissions) {
@@ -181,11 +199,19 @@ export class SuperAdminController {
   // Edita um Consultor
   async updateConsultant(req: Request, res: Response) {
     const { id } = req.params;
-    const { adminName, plan, maxTenants, maxSubmissions } = req.body;
+    const { adminName, plan, maxTenants, maxSubmissions, isActive, adminPassword } = req.body;
     try {
+      const updateData: any = { name: adminName };
+      if (typeof isActive !== 'undefined') {
+        updateData.isActive = isActive;
+      }
+      if (adminPassword) {
+        updateData.password = await bcrypt.hash(adminPassword, 8);
+      }
+
       const user = await prisma.user.update({
         where: { id },
-        data: { name: adminName }
+        data: updateData
       });
       
       // O Consultor tem uma subscription que ele é dono (owner)

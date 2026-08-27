@@ -161,9 +161,10 @@ export class SurveyController {
         return res.status(400).json({ error: 'Pesquisa inválida ou inativa' });
       }
 
+      // 1. Validar limite GLOBAL do plano do Consultor (se não for DEMAND/LICENSE)
       const subscription = survey.tenant?.subscription;
       if (subscription && !['DEMAND', 'LICENSE'].includes(subscription.planType)) {
-        const totalSubmissions = await prisma.submission.count({
+        const totalSubmissionsGlobais = await prisma.submission.count({
           where: {
             survey: {
               tenant: { subscriptionId: subscription.id }
@@ -171,8 +172,21 @@ export class SurveyController {
           }
         });
 
-        if (totalSubmissions >= subscription.maxSubmissions) {
-          return res.status(403).json({ error: 'Limite de vidas/avaliações excedido para o plano atual. Contate o consultor ou faça upgrade.' });
+        if (totalSubmissionsGlobais >= subscription.maxSubmissions) {
+          return res.status(403).json({ error: 'Limite global de avaliações excedido para o plano da consultoria. Contate o consultor.' });
+        }
+      }
+
+      // 2. Validar limite ESPECÍFICO da empresa (definido pelo Consultor), se houver
+      if (survey.tenant?.maxSubmissions) {
+        const totalSubmissionsTenant = await prisma.submission.count({
+          where: {
+            survey: { tenantId: survey.tenant.id }
+          }
+        });
+
+        if (totalSubmissionsTenant >= survey.tenant.maxSubmissions) {
+           return res.status(403).json({ error: 'Limite de avaliações excedido para esta empresa. Contate o administrador ou consultor.' });
         }
       }
 

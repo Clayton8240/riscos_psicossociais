@@ -82,6 +82,8 @@ export class ConsultantController {
           id: tenant.id,
           name: tenant.name,
           document: tenant.document,
+          isActive: tenant.isActive,
+          maxSubmissions: tenant.maxSubmissions, // Retornar maxSubmissions do Tenant
           createdAt: tenant.createdAt,
           totalSurveys: tenant._count.surveys,
           totalUsers: tenant._count.users,
@@ -108,7 +110,7 @@ export class ConsultantController {
   // Consultor cria uma empresa cliente diretamente (sem depender do SuperAdmin)
   async createClientTenant(req: Request, res: Response) {
     const userId = req.user?.id;
-    const { name, document, adminName, adminEmail, adminPassword } = req.body;
+    const { name, document, adminName, adminEmail, adminPassword, maxSubmissions } = req.body;
 
     try {
       // 1. Validar assinatura e limites
@@ -123,6 +125,20 @@ export class ConsultantController {
 
       if (subscription._count.tenants >= subscription.maxTenants) {
         return res.status(403).json({ error: 'Limite de empresas atingido para o seu plano. Faça upgrade para adicionar mais clientes.' });
+      }
+
+      if (maxSubmissions) {
+        const parsedMax = parseInt(maxSubmissions);
+        // Calcula a soma dos limites já distribuídos
+        const allTenants = await prisma.tenant.findMany({
+          where: { subscriptionId: subscription.id },
+          select: { maxSubmissions: true }
+        });
+        const currentAllocated = allTenants.reduce((sum: number, t: any) => sum + (t.maxSubmissions || 0), 0);
+
+        if (currentAllocated + parsedMax > subscription.maxSubmissions) {
+          return res.status(400).json({ error: `O limite distribuído ultrapassa o seu plano. Você tem ${subscription.maxSubmissions - currentAllocated} respostas disponíveis para alocar.` });
+        }
       }
 
       const tenantExists = await prisma.tenant.findUnique({ where: { document } });
@@ -143,6 +159,7 @@ export class ConsultantController {
           name,
           document,
           subscriptionId: subscription.id, // Vínculo com a assinatura
+          maxSubmissions: maxSubmissions ? parseInt(maxSubmissions) : null,
           users: {
             create: {
               name: adminName,
@@ -170,7 +187,7 @@ export class ConsultantController {
   async updateClientTenant(req: Request, res: Response) {
     const userId = req.user?.id;
     const { id } = req.params;
-    const { name, document, maxTenants, maxSubmissions } = req.body;
+    const { name, document, adminPassword, isActive, maxSubmissions } = req.body;
 
     try {
       const subscription = await prisma.subscription.findUnique({ where: { ownerId: userId } });
@@ -179,10 +196,40 @@ export class ConsultantController {
       const tenant = await prisma.tenant.findFirst({ where: { id, subscriptionId: subscription.id } });
       if (!tenant) return res.status(404).json({ error: 'Tenant não encontrado ou não pertence a você' });
 
+      const updatedData: any = {};
+      if (name) updatedData.name = name;
+      if (document) updatedData.document = document;
+      if (isActive !== undefined) updatedData.isActive = isActive;
+      if (maxSubmissions !== undefined) {
+        const parsedMax = maxSubmissions === '' || maxSubmissions === null ? null : parseInt(maxSubmissions);
+        if (parsedMax !== null) {
+          // Calcula a soma dos limites já distribuídos (ignorando o tenant atual)
+          const otherTenants = await prisma.tenant.findMany({
+            where: { subscriptionId: subscription.id, id: { not: id } },
+            select: { maxSubmissions: true }
+          });
+          const currentAllocated = otherTenants.reduce((sum: number, t: any) => sum + (t.maxSubmissions || 0), 0);
+
+          if (currentAllocated + parsedMax > subscription.maxSubmissions) {
+            return res.status(400).json({ error: `O limite distribuído ultrapassa o seu plano. Você tem ${subscription.maxSubmissions - currentAllocated} respostas disponíveis para alocar.` });
+          }
+        }
+        updatedData.maxSubmissions = parsedMax;
+      }
+
       const updated = await prisma.tenant.update({
         where: { id },
-        data: { name, document }
+        data: updatedData
       });
+
+      if (adminPassword) {
+        const hashedPassword = await bcrypt.hash(adminPassword, 8);
+        await prisma.user.updateMany({
+          where: { tenantId: id, role: 'ADMIN' },
+          data: { password: hashedPassword }
+        });
+      }
+
       return res.json(updated);
     } catch (error) {
       console.error(error);

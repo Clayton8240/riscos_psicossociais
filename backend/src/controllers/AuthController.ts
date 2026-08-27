@@ -8,10 +8,21 @@ export class AuthController {
     const { email, password } = req.body;
 
     try {
-      const user = await prisma.user.findUnique({ where: { email } });
+      const user = await prisma.user.findUnique({ 
+        where: { email },
+        include: { tenant: true }
+      });
 
       if (!user) {
         return res.status(401).json({ error: 'Usuário não encontrado' });
+      }
+
+      if (user.isActive === false) {
+        return res.status(401).json({ error: 'Acesso negado. Sua conta está inativa.' });
+      }
+
+      if (user.tenant && !user.tenant.isActive) {
+        return res.status(401).json({ error: 'Acesso negado. A conta da empresa está inativa.' });
       }
 
       const isValidPassword = user.password ? await bcrypt.compare(password, user.password) : false;

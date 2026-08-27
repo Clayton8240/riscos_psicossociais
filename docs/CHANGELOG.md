@@ -8,6 +8,11 @@ O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0
 ### Adicionado
 - **Perfil de Consultor:** Implementação completa da gestão de contas para Consultorias.
 - **Painel do Consultor (`/consultant`):** Nova interface permitindo ao consultor gerenciar seus clientes (Tenants), visualizar métricas de uso do plano (empresas cadastradas e pesquisas respondidas) e editar/excluir dados das empresas.
+- **Limite de Respostas por Cliente:** O consultor agora pode definir um limite opcional de respostas (submissões) específico para cada cliente (Tenant), garantindo maior controle sobre o uso de seu plano global.
+- **Opções Avançadas de Cliente:** Permitido ao Consultor e ao Super Admin inativar/ativar um cliente (Tenant) e alterar a senha de seu administrador diretamente de seus painéis, sem a necessidade de exclusão do registro.
+
+### Corrigido
+- **Distribuição de Limites do Consultor:** Corrigida uma falha onde um consultor conseguia distribuir para as empresas clientes uma quantidade de "Limite de Respostas" superior ao que estava disponível em seu próprio plano global. Agora o sistema faz a soma de todos os limites alocados e barra tentativas que excedam a cota disponível.
 - **Impersonação de Contas:** Consultores e Super Admins agora possuem um botão "Acessar" para entrar de forma transparente na conta de um cliente (Tenant) e realizar a gestão completa (criar pesquisas, extrair relatórios) sem precisar da senha do cliente.
 - **Botão "Voltar p/ Consultor":** Inclusão de um botão no menu do sistema que permite ao consultor retornar facilmente ao seu painel original após trabalhar na conta de um cliente.
 - **Controle de Limites de Plano:** Inclusão de limites de criação de Tenants e quantidade máxima de respostas nas pesquisas atrelados à assinatura da empresa/consultoria.
@@ -19,6 +24,9 @@ O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0
 - **Painel Super Admin:** Melhoria no formulário de criação de clientes com a inclusão de um botão "Tipo de Conta", permitindo separar visualmente e gerenciar "Usuários Singulares (Empresa)" e "Consultorias".
 - **Lógica de Autenticação (`Login.tsx`):** Correção do fluxo de redirecionamento, garantindo que perfis de Consultor e Super Admin sejam encaminhados para seus respectivos painéis.
 - **Nginx & Cache:** Ajuste nas políticas de cache do servidor web (Nginx) para forçar o recarregamento (`no-cache`, `no-store`) do front-end nas novas atualizações do sistema, evitando que os usuários vejam páginas antigas (staleness).
+
+### Corrigido
+- **Nome da Empresa na Impersonação:** O sistema agora exibe corretamente o nome da empresa cliente no topo da tela (navbar) quando o Consultor ou Super Admin está utilizando a funcionalidade de "Acessar" (impersonação), corrigindo o fallback para "Meu SaaS".
 
 ## [1.2.0] - 2026-08-25
 

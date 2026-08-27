@@ -9,6 +9,7 @@ interface Tenant {
   createdAt: string;
   subscriptionId?: string;
   subscription?: { maxSubmissions: number };
+  isActive: boolean;
   _count: {
     users: number;
     surveys: number;
@@ -20,6 +21,7 @@ interface Consultant {
   name: string;
   email: string;
   createdAt: string;
+  isActive: boolean;
   subscription?: { 
     id: string;
     planType: string;
@@ -47,6 +49,7 @@ export function SuperAdmin() {
   const [plan, setPlan] = useState('BRONZE');
   const [maxTenants, setMaxTenants] = useState('5');
   const [maxSubmissions, setMaxSubmissions] = useState('50');
+  const [isActive, setIsActive] = useState<boolean>(true);
 
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3333';
@@ -83,6 +86,8 @@ export function SuperAdmin() {
     setName(t.name);
     setDocument(t.document);
     setMaxSubmissions(t.subscription?.maxSubmissions ? t.subscription.maxSubmissions.toString() : '50');
+    setIsActive(t.isActive !== false);
+    setAdminPassword('');
     // Não precisa de adminName, etc na edição do tenant simples
   };
 
@@ -90,6 +95,8 @@ export function SuperAdmin() {
     setEditingId(c.id);
     setAccountType('CONSULTANT');
     setAdminName(c.name);
+    setIsActive(c.isActive !== false);
+    setAdminPassword('');
     
     if (c.subscription) {
       const sub = c.subscription;
@@ -108,6 +115,7 @@ export function SuperAdmin() {
     setAdminPassword('');
     setMaxSubmissions('50');
     setMaxTenants('5');
+    setIsActive(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,7 +129,9 @@ export function SuperAdmin() {
       if (editingId) {
          method = 'PUT';
          endpoint = isSingle ? `/superadmin/tenants/${editingId}` : `/superadmin/consultants/${editingId}`;
-         body = isSingle ? { name, document, maxSubmissions } : { adminName, plan, maxTenants, maxSubmissions };
+         body = isSingle 
+          ? { name, document, maxSubmissions, isActive, adminPassword } 
+          : { adminName, plan, maxTenants, maxSubmissions, isActive, adminPassword };
       } else {
          endpoint = isSingle ? '/superadmin/tenants' : '/superadmin/consultants';
          body = isSingle 
@@ -306,6 +316,36 @@ export function SuperAdmin() {
                 </>
               )}
 
+              {/* Opções Avançadas para Tenant e Consultant */}
+              {editingId && (
+                <>
+                  <hr style={{ borderTop: '1px solid var(--bg-hover)', margin: '12px 0' }} />
+                  <h4 style={{ margin: 0, color: 'var(--text-muted)', fontSize: '16px', fontWeight: '700' }}>Opções Avançadas</h4>
+                  
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Status da Conta</label>
+                    <select 
+                      value={isActive ? 'true' : 'false'} 
+                      onChange={e => setIsActive(e.target.value === 'true')}
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }}
+                    >
+                      <option value="true">Ativo</option>
+                      <option value="false">Inativo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Alterar Senha do Administrador</label>
+                    <input 
+                      type="password" 
+                      placeholder="Deixe em branco para não alterar" 
+                      value={adminPassword} 
+                      onChange={e => setAdminPassword(e.target.value)} 
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} 
+                    />
+                  </div>
+                </>
+              )}
+
               <button type="submit" style={{ padding: '14px', backgroundColor: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', marginTop: '8px', fontSize: '15px', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' }}>
                 {editingId ? 'Atualizar Conta' : '+ Criar Conta'}
               </button>
@@ -343,7 +383,16 @@ export function SuperAdmin() {
                   <tbody>
                     {tenants.map(tenant => (
                       <tr key={tenant.id} style={{ borderBottom: '1px solid var(--bg-hover)' }}>
-                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>{tenant.name}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {tenant.name}
+                            {tenant.isActive === false && (
+                              <span style={{ backgroundColor: 'var(--danger-bg)', color: 'var(--danger)', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
+                                Inativo
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant.document}</td>
                         <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant._count.users}</td>
                         <td style={{ padding: '16px', textAlign: 'center' }}>
@@ -385,7 +434,16 @@ export function SuperAdmin() {
                   <tbody>
                     {consultants.map(consultant => (
                       <tr key={consultant.id} style={{ borderBottom: '1px solid var(--bg-hover)' }}>
-                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>{consultant.name}</td>
+                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {consultant.name}
+                            {consultant.isActive === false && (
+                              <span style={{ backgroundColor: 'var(--danger-bg)', color: 'var(--danger)', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
+                                Inativo
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{consultant.email}</td>
                         <td style={{ padding: '16px', color: 'var(--text-muted)' }}>
                           {consultant.subscription ? consultant.subscription.planType : 'N/A'}

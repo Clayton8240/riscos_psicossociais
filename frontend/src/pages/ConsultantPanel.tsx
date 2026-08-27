@@ -7,10 +7,12 @@ interface Tenant {
   id: string;
   name: string;
   document: string;
+  isActive: boolean;
   createdAt: string;
   totalSurveys: number;
   totalUsers: number;
   totalSubmissions: number;
+  maxSubmissions?: number;
 }
 
 export function ConsultantPanel() {
@@ -23,6 +25,8 @@ export function ConsultantPanel() {
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [isActive, setIsActive] = useState(true);
+  const [maxSubmissions, setMaxSubmissions] = useState('');
   
   const [loadingSave, setLoadingSave] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
@@ -62,6 +66,8 @@ export function ConsultantPanel() {
     setEditingId(t.id);
     setTenantName(t.name);
     setTenantDocument(t.document);
+    setIsActive(t.isActive);
+    setMaxSubmissions(t.maxSubmissions !== null && t.maxSubmissions !== undefined ? String(t.maxSubmissions) : '');
   };
 
   const resetForm = () => {
@@ -71,6 +77,8 @@ export function ConsultantPanel() {
     setAdminName('');
     setAdminEmail('');
     setAdminPassword('');
+    setIsActive(true);
+    setMaxSubmissions('');
   };
 
   const handleSaveTenant = async (e: React.FormEvent) => {
@@ -80,8 +88,8 @@ export function ConsultantPanel() {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3333';
     
     const body = editingId 
-      ? { name: tenantName, document: tenantDocument }
-      : { name: tenantName, document: tenantDocument, adminName, adminEmail, adminPassword };
+      ? { name: tenantName, document: tenantDocument, isActive, maxSubmissions, ...(adminPassword ? { adminPassword } : {}) }
+      : { name: tenantName, document: tenantDocument, adminName, adminEmail, adminPassword, maxSubmissions };
       
     const endpoint = editingId ? `/consultant/clients/${editingId}` : '/consultant/clients';
     const method = editingId ? 'PUT' : 'POST';
@@ -224,6 +232,28 @@ export function ConsultantPanel() {
               </>
             )}
 
+            <div>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>Limite Máximo de Respostas (Opcional)</label>
+              <input type="number" value={maxSubmissions} onChange={e => setMaxSubmissions(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', outline: 'none' }} placeholder="Deixe em branco para usar o limite global" />
+            </div>
+
+            {editingId && (
+              <>
+                <h4 style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '15px' }}>Opções Avançadas</h4>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>Status da Empresa</label>
+                  <select value={isActive ? 'true' : 'false'} onChange={e => setIsActive(e.target.value === 'true')} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', outline: 'none', backgroundColor: '#fff' }}>
+                    <option value="true">Ativo</option>
+                    <option value="false">Inativo</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: 'var(--text-secondary)' }}>Alterar Senha do Administrador (Opcional)</label>
+                  <input type="password" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)', outline: 'none' }} placeholder="Nova senha (deixe em branco para manter)" />
+                </div>
+              </>
+            )}
+
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
               {editingId && (
                 <button type="button" onClick={resetForm} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'transparent', cursor: 'pointer', fontWeight: '600' }}>
@@ -260,9 +290,15 @@ export function ConsultantPanel() {
             <tbody>
               {tenants.map(tenant => (
                 <tr key={tenant.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background-color 0.2s' }}>
-                  <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>{tenant.name}</td>
+                  <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                    {tenant.name}
+                    {!tenant.isActive && <span style={{ marginLeft: '8px', padding: '2px 6px', fontSize: '11px', backgroundColor: 'var(--danger-bg)', color: 'var(--danger)', borderRadius: '4px' }}>Inativo</span>}
+                  </td>
                   <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant.totalSurveys} criadas</td>
-                  <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant.totalSubmissions} envios</td>
+                  <td style={{ padding: '16px', color: 'var(--text-muted)' }}>
+                    {tenant.totalSubmissions} envios
+                    {tenant.maxSubmissions && <span style={{ marginLeft: '4px', fontSize: '12px' }}>/ {tenant.maxSubmissions}</span>}
+                  </td>
                   <td style={{ padding: '16px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                       <button 

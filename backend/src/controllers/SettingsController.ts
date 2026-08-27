@@ -10,12 +10,23 @@ export class SettingsController {
         include: { tenant: true }
       });
       if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+      let companyName = user.tenant?.name || '';
+      let sectors = user.tenant?.sectors || '[]';
+
+      if (req.user?.tenantId && req.user.tenantId !== user.tenantId) {
+        const impersonatedTenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId } });
+        if (impersonatedTenant) {
+          companyName = impersonatedTenant.name;
+          sectors = impersonatedTenant.sectors;
+        }
+      }
+
       return res.json({
         name: user.name,
         email: user.email,
-        role: user.role,
-        companyName: user.tenant?.name || '',
-        sectors: JSON.parse(user.tenant?.sectors || '[]')
+        role: req.user?.role || user.role, // Use role from token for impersonation
+        companyName,
+        sectors: JSON.parse(sectors)
       });
     } catch (error) {
       return res.status(500).json({ error: 'Erro ao buscar perfil' });

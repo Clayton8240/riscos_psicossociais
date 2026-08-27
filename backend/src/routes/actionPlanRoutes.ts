@@ -6,11 +6,9 @@ import { tenantMiddleware } from '../middlewares/tenantMiddleware';
 const actionPlanRoutes = Router();
 const actionPlanController = new ActionPlanController();
 
-actionPlanRoutes.use(authMiddleware, tenantMiddleware);
-
-actionPlanRoutes.post('/action-plans', actionPlanController.create);
-actionPlanRoutes.get('/action-plans', actionPlanController.list);
-actionPlanRoutes.patch('/action-plans/:id/status', actionPlanController.updateStatus);
-actionPlanRoutes.delete('/action-plans/:id', actionPlanController.delete);
+actionPlanRoutes.post('/action-plans', authMiddleware, tenantMiddleware, actionPlanController.create);
+actionPlanRoutes.get('/action-plans', authMiddleware, tenantMiddleware, actionPlanController.list);
+actionPlanRoutes.patch('/action-plans/:id/status', authMiddleware, tenantMiddleware, actionPlanController.updateStatus);
+actionPlanRoutes.delete('/action-plans/:id', authMiddleware, tenantMiddleware, actionPlanController.delete);
 
 export { actionPlanRoutes };

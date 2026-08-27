@@ -11,10 +11,13 @@ model Tenant {
   id        String   @id @default(uuid())
   name      String
   document  String   @unique // CNPJ ou similar
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   sectors   String   @default("[\"Administrativo\",\"Operacional\",\"Comercial\",\"TI\",\"RH\",\"Geral\"]")
-
+  
+  maxSubmissions Int? // Limite opcional de respostas específico para esta empresa (Tenant)
+  
   users       User[]
   surveys     Survey[]
   actionPlans ActionPlan[]
@@ -32,6 +35,7 @@ model User {
   password  String?  // Opcional para quem usa SSO
   ssoId     String?  @unique // ID do Active Directory/SSO
   role      String   @default("EMPLOYEE")
+  isActive  Boolean  @default(true)
   
   tenantId  String?
   tenant    Tenant?  @relation(fields: [tenantId], references: [id])
