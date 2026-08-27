@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, User as UserIcon, Settings, LayoutDashboard, FileText, CheckSquare, Menu, X, Building, Users, Sun, Moon } from 'lucide-react';
+import { Footer } from './Footer';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [loadingSave, setLoadingSave] = useState(false);
+  const originalToken = localStorage.getItem('originalToken');
 
   useEffect(() => {
     fetchProfile();
@@ -52,6 +54,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  
+  const handleExitImpersonate = () => {
+    const orig = localStorage.getItem('originalToken');
+    if (orig) {
+      localStorage.setItem('token', orig);
+      localStorage.removeItem('originalToken');
+      localStorage.setItem('role', 'CONSULTANT');
+      window.location.href = '/consultant';
     }
   };
 
@@ -203,6 +216,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       >
                         <UserIcon size={16} /> Meu Perfil
                       </button>
+                      
+                      {originalToken && (
+                        <button 
+                          onClick={handleExitImpersonate}
+                          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--primary)', border: 'none', cursor: 'pointer', borderRadius: '6px', color: 'white', fontSize: '14px', textAlign: 'left', marginBottom: '8px' }}
+                        >
+                          <LogOut size={16} /> Voltar p/ Consultor
+                        </button>
+                      )}
                       <button 
                         onClick={handleLogout}
                         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: '6px', color: 'var(--danger)', fontSize: '14px', textAlign: 'left' }}
@@ -257,9 +279,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* Main Content Area */}
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px', minHeight: 'calc(100vh - 64px)' }}>
+      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px', minHeight: 'calc(100vh - 64px - 80px)' }}>
         {children}
       </main>
+
+      <Footer />
 
       {/* Settings Modal */}
       {showSettingsModal && (

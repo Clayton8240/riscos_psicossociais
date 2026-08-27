@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -18,6 +18,9 @@ model Tenant {
   users       User[]
   surveys     Survey[]
   actionPlans ActionPlan[]
+
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
 
   @@map("tenants")
 }
@@ -37,6 +40,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   actionPlans ActionPlan[] // Relacionamento inverso para Planos de Ação atribuídos a este usuário
+  subscription Subscription? @relation("SubscriptionOwner")
 
   @@map("users")
 }
@@ -128,4 +132,21 @@ model ActionPlan {
   updatedAt   DateTime   @updatedAt
 
   @@map("action_plans")
+}
+
+model Subscription {
+  id              String   @id @default(uuid())
+  ownerId         String   @unique
+  owner           User     @relation("SubscriptionOwner", fields: [ownerId], references: [id])
+  
+  planType        String   @default("START") // START, PRO, ENTERPRISE, DEMAND, LICENSE
+  maxTenants      Int      @default(3)
+  maxSubmissions  Int      @default(150)
+  
+  tenants         Tenant[] // Empresas (Tenants) vinculadas a esta assinatura
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("subscriptions")
 }

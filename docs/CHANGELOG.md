@@ -3,6 +3,23 @@
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/), e este projeto adere ao [Semantic Versioning](https://semver.org/).
+## [1.3.0] - 2026-08-27
+
+### Adicionado
+- **Perfil de Consultor:** Implementação completa da gestão de contas para Consultorias.
+- **Painel do Consultor (`/consultant`):** Nova interface permitindo ao consultor gerenciar seus clientes (Tenants), visualizar métricas de uso do plano (empresas cadastradas e pesquisas respondidas) e editar/excluir dados das empresas.
+- **Impersonação de Contas:** Consultores e Super Admins agora possuem um botão "Acessar" para entrar de forma transparente na conta de um cliente (Tenant) e realizar a gestão completa (criar pesquisas, extrair relatórios) sem precisar da senha do cliente.
+- **Botão "Voltar p/ Consultor":** Inclusão de um botão no menu do sistema que permite ao consultor retornar facilmente ao seu painel original após trabalhar na conta de um cliente.
+- **Controle de Limites de Plano:** Inclusão de limites de criação de Tenants e quantidade máxima de respostas nas pesquisas atrelados à assinatura da empresa/consultoria.
+- **Novo Manual:** Criação do arquivo `MANUAL_DO_CONSULTOR.md` voltado a treinar consultorias no uso das ferramentas de multi-gestão do sistema.
+- **Rodapé Global (Footer):** Criação e implementação de um componente de Footer dinâmico contendo direitos autorais em todo o sistema (Login, Dashboards, Tela de Pesquisa).
+
+### Modificado
+- **Migração de Banco de Dados:** Substituição do banco de dados SQLite por **PostgreSQL** para ambiente de produção, incluindo script avançado de migração de dados preservando os registros existentes.
+- **Painel Super Admin:** Melhoria no formulário de criação de clientes com a inclusão de um botão "Tipo de Conta", permitindo separar visualmente e gerenciar "Usuários Singulares (Empresa)" e "Consultorias".
+- **Lógica de Autenticação (`Login.tsx`):** Correção do fluxo de redirecionamento, garantindo que perfis de Consultor e Super Admin sejam encaminhados para seus respectivos painéis.
+- **Nginx & Cache:** Ajuste nas políticas de cache do servidor web (Nginx) para forçar o recarregamento (`no-cache`, `no-store`) do front-end nas novas atualizações do sistema, evitando que os usuários vejam páginas antigas (staleness).
+
 ## [1.2.0] - 2026-08-25
 
 ### Adicionado

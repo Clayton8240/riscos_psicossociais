@@ -1,28 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Footer } from '../components/Footer';
 
 interface Tenant {
   id: string;
   name: string;
   document: string;
   createdAt: string;
+  subscriptionId?: string;
+  subscription?: { maxSubmissions: number };
   _count: {
     users: number;
     surveys: number;
   }
 }
 
+interface Consultant {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  subscription?: { 
+    id: string;
+    planType: string;
+    maxTenants: number; 
+    maxSubmissions: number;
+  };
+}
+
 export function SuperAdmin() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  
+  const [viewTab, setViewTab] = useState<'TENANTS' | 'CONSULTANTS'>('TENANTS');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form states
+  const [accountType, setAccountType] = useState('SINGLE');
   const [name, setName] = useState('');
   const [document, setDocument] = useState('');
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [plan, setPlan] = useState('BRONZE');
+  const [maxTenants, setMaxTenants] = useState('5');
+  const [maxSubmissions, setMaxSubmissions] = useState('50');
 
   const navigate = useNavigate();
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3333';
@@ -35,72 +59,116 @@ export function SuperAdmin() {
       navigate('/');
       return;
     }
-    fetchTenants();
+    fetchData();
   }, []);
 
-  const fetchTenants = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/superadmin/tenants`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTenants(data);
-      }
+      const resT = await fetch(`${apiUrl}/superadmin/tenants`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (resT.ok) setTenants(await resT.json());
+
+      const resC = await fetch(`${apiUrl}/superadmin/consultants`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (resC.ok) setConsultants(await resC.json());
     } catch (error) {
-      console.error('Erro ao buscar empresas', error);
+      console.error('Erro ao buscar dados', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateTenant = async (e: React.FormEvent) => {
+  const handleEditTenant = (t: Tenant) => {
+    setEditingId(t.id);
+    setAccountType('SINGLE');
+    setName(t.name);
+    setDocument(t.document);
+    setMaxSubmissions(t.subscription?.maxSubmissions ? t.subscription.maxSubmissions.toString() : '50');
+    // Não precisa de adminName, etc na edição do tenant simples
+  };
+
+  const handleEditConsultant = (c: Consultant) => {
+    setEditingId(c.id);
+    setAccountType('CONSULTANT');
+    setAdminName(c.name);
+    
+    if (c.subscription) {
+      const sub = c.subscription;
+      setPlan(sub.planType);
+      setMaxTenants(sub.maxTenants.toString());
+      setMaxSubmissions(sub.maxSubmissions.toString());
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setName('');
+    setDocument('');
+    setAdminName('');
+    setAdminEmail('');
+    setAdminPassword('');
+    setMaxSubmissions('50');
+    setMaxTenants('5');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${apiUrl}/superadmin/tenants`, {
-        method: 'POST',
+      const isSingle = accountType === 'SINGLE';
+      let endpoint = '';
+      let method = 'POST';
+      let body: any = {};
+
+      if (editingId) {
+         method = 'PUT';
+         endpoint = isSingle ? `/superadmin/tenants/${editingId}` : `/superadmin/consultants/${editingId}`;
+         body = isSingle ? { name, document, maxSubmissions } : { adminName, plan, maxTenants, maxSubmissions };
+      } else {
+         endpoint = isSingle ? '/superadmin/tenants' : '/superadmin/consultants';
+         body = isSingle 
+          ? { name, document, adminName, adminEmail, adminPassword, maxSubmissions }
+          : { adminName, adminEmail, adminPassword, plan, maxTenants, maxSubmissions };
+      }
+
+      const res = await fetch(`${apiUrl}${endpoint}`, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ name, document, adminName, adminEmail, adminPassword })
+        body: JSON.stringify(body)
       });
 
       if (res.ok) {
-        setName('');
-        setDocument('');
-        setAdminName('');
-        setAdminEmail('');
-        setAdminPassword('');
-        fetchTenants(); // Recarrega lista
-        alert('Empresa e Administrador criados com sucesso!');
+        handleCancelEdit();
+        fetchData();
+        alert(editingId ? 'Conta atualizada com sucesso!' : 'Conta criada com sucesso!');
       } else {
         const err = await res.json();
-        alert(err.error || 'Erro ao criar empresa');
+        alert(err.error || 'Erro ao processar requisição');
       }
     } catch (error) {
       alert('Erro de conexão');
     }
   };
 
-  const handleDeleteTenant = async (id: string, name: string) => {
-    if (!window.confirm(`ATENÇÃO: Você tem certeza que deseja excluir a empresa "${name}" e todos os seus dados? Esta ação é irreversível!`)) {
+  const handleDelete = async (id: string, name: string, type: 'TENANT' | 'CONSULTANT') => {
+    if (!window.confirm(`ATENÇÃO: Você tem certeza que deseja excluir "${name}" e todos os seus dados? Esta ação é irreversível!`)) {
       return;
     }
 
-    setLoadingAction(id);
+    setLoadingAction(`del-${id}`);
     try {
-      const res = await fetch(`${apiUrl}/superadmin/tenants/${id}`, {
+      const endpoint = type === 'TENANT' ? `/superadmin/tenants/${id}` : `/superadmin/consultants/${id}`;
+      const res = await fetch(`${apiUrl}${endpoint}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        setTenants(tenants.filter(t => t.id !== id));
-        alert('Empresa excluída com sucesso.');
+        fetchData();
+        alert('Excluído com sucesso.');
       } else {
         const err = await res.json();
-        alert(err.error || 'Erro ao excluir empresa');
+        alert(err.error || 'Erro ao excluir');
       }
     } catch (error) {
       alert('Erro de conexão');
@@ -122,10 +190,8 @@ export function SuperAdmin() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Substituir o token e a role no localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.role);
-        // Redireciona para o dashboard
         window.location.href = '/dashboard';
       } else {
         const err = await res.json();
@@ -146,14 +212,15 @@ export function SuperAdmin() {
   if (role !== 'SUPERADMIN') return null;
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+      <div style={{ flex: 1, padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <div>
             <h1 style={{ fontSize: '32px', color: 'var(--primary-dark)', margin: '0 0 8px 0', fontWeight: '800' }}>Painel Super Admin</h1>
-            <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '16px' }}>Gestão central de Tenants (Empresas Clientes).</p>
+            <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '16px' }}>Gestão central de Contas e Assinaturas.</p>
           </div>
-          <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color-dark)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: 'var(--text-secondary)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+          <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color-dark)', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: 'var(--text-secondary)' }}>
             Sair
           </button>
         </div>
@@ -161,94 +228,195 @@ export function SuperAdmin() {
         <div style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
           {/* Formulário */}
           <div style={{ flex: '1', backgroundColor: 'var(--bg-card)', padding: '32px', borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-            <h3 style={{ margin: '0 0 24px 0', color: 'var(--primary-dark)', fontSize: '20px', fontWeight: '700' }}>Cadastrar Nova Empresa</h3>
-            <form onSubmit={handleCreateTenant} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ margin: 0, color: 'var(--primary-dark)', fontSize: '20px', fontWeight: '700' }}>
+                {editingId ? 'Editar Conta' : 'Cadastrar Nova Conta'}
+              </h3>
+              {editingId && (
+                <button type="button" onClick={handleCancelEdit} style={{ fontSize: '13px', color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Cancelar</button>
+              )}
+            </div>
+            
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Nome da Empresa</label>
-                <input required type="text" value={name} onChange={e => setName(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Tipo de Conta</label>
+                <select disabled={!!editingId} value={accountType} onChange={e => setAccountType(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px', backgroundColor: editingId ? 'var(--bg-main)' : 'white' }}>
+                  <option value="SINGLE">Empresa Única</option>
+                  <option value="CONSULTANT">Consultor</option>
+                </select>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>CNPJ (ou Documento)</label>
-                <input required type="text" value={document} onChange={e => setDocument(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
-              </div>
-              
+
+              {accountType === 'SINGLE' && (
+                <>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Nome da Empresa</label>
+                    <input required type="text" value={name} onChange={e => setName(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>CNPJ (ou Documento)</label>
+                    <input required type="text" value={document} onChange={e => setDocument(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Limite de Colaboradores (Envios)</label>
+                    <input required type="number" min="1" value={maxSubmissions} onChange={e => setMaxSubmissions(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                  </div>
+                </>
+              )}
+
+              {accountType === 'CONSULTANT' && (
+                <>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Plano</label>
+                      <select value={plan} onChange={e => setPlan(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }}>
+                        <option value="BRONZE">Bronze</option>
+                        <option value="SILVER">Prata</option>
+                        <option value="GOLD">Ouro</option>
+                      </select>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Qtd de Clientes</label>
+                      <input required type="number" min="1" value={maxTenants} onChange={e => setMaxTenants(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Limite Global de Envios</label>
+                    <input required type="number" min="1" value={maxSubmissions} onChange={e => setMaxSubmissions(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                  </div>
+                </>
+              )}
+
               <hr style={{ borderTop: '1px solid var(--bg-hover)', margin: '12px 0' }} />
-              <h4 style={{ margin: 0, color: 'var(--text-muted)', fontSize: '16px', fontWeight: '700' }}>Primeiro Acesso (Admin RH)</h4>
+              <h4 style={{ margin: 0, color: 'var(--text-muted)', fontSize: '16px', fontWeight: '700' }}>Dados do Administrador {accountType === 'CONSULTANT' && '(Consultor)'}</h4>
 
               <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Nome do Administrador</label>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Nome</label>
                 <input required type="text" value={adminName} onChange={e => setAdminName(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>E-mail</label>
-                <input required type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Senha Provisória</label>
-                <input required type="password" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
-              </div>
+              {!editingId && (
+                <>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>E-mail de Login</label>
+                    <input required type="email" value={adminEmail} onChange={e => setAdminEmail(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>Senha Provisória</label>
+                    <input required type="password" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color-dark)', outlineColor: 'var(--primary)', fontSize: '15px' }} />
+                  </div>
+                </>
+              )}
 
               <button type="submit" style={{ padding: '14px', backgroundColor: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', marginTop: '8px', fontSize: '15px', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' }}>
-                + Criar Empresa
+                {editingId ? 'Atualizar Conta' : '+ Criar Conta'}
               </button>
             </form>
           </div>
 
-        {/* Tabela */}
+        {/* Tabelas e Abas */}
         <div style={{ flex: '2', backgroundColor: 'var(--bg-card)', padding: '32px', borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-          <h3 style={{ margin: '0 0 24px 0', color: 'var(--primary-dark)', fontSize: '20px', fontWeight: '700' }}>Empresas Clientes ({tenants.length})</h3>
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', borderBottom: '2px solid var(--bg-hover)' }}>
+             <button 
+                onClick={() => setViewTab('TENANTS')} 
+                style={{ padding: '10px 0', border: 'none', background: 'transparent', fontSize: '18px', fontWeight: '700', cursor: 'pointer', color: viewTab === 'TENANTS' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: viewTab === 'TENANTS' ? '3px solid var(--primary)' : '3px solid transparent', marginBottom: '-2px' }}>
+                Empresas Clientes ({tenants.length})
+             </button>
+             <button 
+                onClick={() => setViewTab('CONSULTANTS')} 
+                style={{ padding: '10px 0', border: 'none', background: 'transparent', fontSize: '18px', fontWeight: '700', cursor: 'pointer', color: viewTab === 'CONSULTANTS' ? 'var(--primary)' : 'var(--text-muted)', borderBottom: viewTab === 'CONSULTANTS' ? '3px solid var(--primary)' : '3px solid transparent', marginBottom: '-2px' }}>
+                Consultores Cadastrados ({consultants.length})
+             </button>
+          </div>
           
           {loading ? <p style={{ color: 'var(--text-muted)' }}>Carregando...</p> : (
             <div style={{ border: '1px solid var(--bg-hover)', borderRadius: '12px', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '15px' }}>
-                <thead style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--bg-hover)' }}>
-                  <tr>
-                    <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Empresa</th>
-                    <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>CNPJ</th>
-                    <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Usuários</th>
-                    <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Pesquisas</th>
-                    <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Registro</th>
-                    <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600', textAlign: 'center' }}>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tenants.map(tenant => (
-                    <tr key={tenant.id} style={{ borderBottom: '1px solid var(--bg-hover)' }}>
-                      <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>{tenant.name}</td>
-                      <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant.document}</td>
-                      <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant._count.users}</td>
-                      <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant._count.surveys}</td>
-                      <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{new Date(tenant.createdAt).toLocaleDateString()}</td>
-                      <td style={{ padding: '16px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                          <button 
-                            onClick={() => handleImpersonate(tenant.id, tenant.name)}
-                            disabled={loadingAction === `impersonate-${tenant.id}`}
-                            style={{ padding: '6px 12px', backgroundColor: 'var(--success)', color: 'var(--bg-card)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
-                            {loadingAction === `impersonate-${tenant.id}` ? '...' : 'Acessar'}
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteTenant(tenant.id, tenant.name)}
-                            disabled={loadingAction === tenant.id}
-                            style={{ padding: '6px 12px', backgroundColor: 'var(--danger)', color: 'var(--bg-card)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
-                            {loadingAction === tenant.id ? '...' : 'Excluir'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {tenants.length === 0 && (
+              
+              {viewTab === 'TENANTS' && (
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '15px' }}>
+                  <thead style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--bg-hover)' }}>
                     <tr>
-                      <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-placeholder)' }}>Nenhuma empresa cadastrada.</td>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Empresa</th>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>CNPJ</th>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Usuários</th>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Ações</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {tenants.map(tenant => (
+                      <tr key={tenant.id} style={{ borderBottom: '1px solid var(--bg-hover)' }}>
+                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>{tenant.name}</td>
+                        <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant.document}</td>
+                        <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{tenant._count.users}</td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <button onClick={() => handleEditTenant(tenant)} style={{ padding: '6px 12px', backgroundColor: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>Editar</button>
+                            <button 
+                              onClick={() => handleImpersonate(tenant.id, tenant.name)}
+                              disabled={loadingAction === `impersonate-${tenant.id}`}
+                              style={{ padding: '6px 12px', backgroundColor: 'var(--success)', color: 'var(--bg-card)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                              Acessar
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(tenant.id, tenant.name, 'TENANT')}
+                              disabled={loadingAction === `del-${tenant.id}`}
+                              style={{ padding: '6px 12px', backgroundColor: 'var(--danger)', color: 'var(--bg-card)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                              Excluir
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {tenants.length === 0 && (
+                      <tr><td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-placeholder)' }}>Nenhuma empresa cadastrada.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+
+              {viewTab === 'CONSULTANTS' && (
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '15px' }}>
+                  <thead style={{ backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--bg-hover)' }}>
+                    <tr>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Consultor</th>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>E-mail</th>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Plano</th>
+                      <th style={{ padding: '16px', color: 'var(--text-muted)', fontWeight: '600' }}>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {consultants.map(consultant => (
+                      <tr key={consultant.id} style={{ borderBottom: '1px solid var(--bg-hover)' }}>
+                        <td style={{ padding: '16px', fontWeight: '600', color: 'var(--text-secondary)' }}>{consultant.name}</td>
+                        <td style={{ padding: '16px', color: 'var(--text-muted)' }}>{consultant.email}</td>
+                        <td style={{ padding: '16px', color: 'var(--text-muted)' }}>
+                          {consultant.subscription ? consultant.subscription.planType : 'N/A'}
+                        </td>
+                        <td style={{ padding: '16px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                            <button onClick={() => handleEditConsultant(consultant)} style={{ padding: '6px 12px', backgroundColor: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>Editar</button>
+                            <button 
+                              onClick={() => handleDelete(consultant.id, consultant.name, 'CONSULTANT')}
+                              disabled={loadingAction === `del-${consultant.id}`}
+                              style={{ padding: '6px 12px', backgroundColor: 'var(--danger)', color: 'var(--bg-card)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>
+                              Excluir
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {consultants.length === 0 && (
+                      <tr><td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-placeholder)' }}>Nenhum consultor cadastrado.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
+
             </div>
           )}
         </div>
+          </div>
+        </div>
       </div>
+      <Footer />
     </div>
-  </div>
   );
 }

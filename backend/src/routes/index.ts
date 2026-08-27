@@ -8,6 +8,7 @@ import { actionPlanRoutes } from './actionPlanRoutes';
 import { superAdminRoutes } from './superAdminRoutes';
 import { settingsRoutes } from './settingsRoutes';
 import { userRoutes } from './userRoutes';
+import { consultantRoutes } from './consultantRoutes';
 
 const routes = Router();
 
@@ -32,6 +33,9 @@ routes.use('/', userRoutes);
 
 // Rotas de Configurações
 routes.use('/', settingsRoutes);
+
+// Rotas do Consultor (Assinaturas e Gerenciamento de Clientes)
+routes.use('/', consultantRoutes);
 
 routes.get('/me', authMiddleware, tenantMiddleware, (req, res) => {
   return res.json({ 

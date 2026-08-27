@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Footer } from '../components/Footer';
 
 interface Question {
   id: string;
@@ -107,20 +108,24 @@ export function SurveyResponse() {
 
   if (submitted) {
     return (
-      <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ maxWidth: '600px', width: '100%', padding: '48px 32px', textAlign: 'center', backgroundColor: 'var(--bg-card)', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
+      <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
+          <div style={{ maxWidth: '600px', width: '100%', padding: '48px 32px', textAlign: 'center', backgroundColor: 'var(--bg-card)', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🎉</div>
           <h2 style={{ color: 'var(--success-text)', fontSize: '28px', fontWeight: '800', marginBottom: '12px' }}>Obrigado pela sua participação!</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '16px', lineHeight: '1.6' }}>Suas respostas foram registradas com sucesso e de forma <strong style={{ color: 'var(--primary-dark)' }}>totalmente anônima</strong>.</p>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-        <header style={{ marginBottom: '40px', textAlign: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: 'var(--bg-main)' }}>
+      <div style={{ flex: 1, padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <header style={{ marginBottom: '40px', textAlign: 'center' }}>
           <h1 style={{ fontSize: '32px', color: 'var(--primary-dark)', marginBottom: '12px', fontWeight: '800' }}>{survey.title}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '16px', lineHeight: '1.6' }}>{survey.description}</p>
         </header>
@@ -263,7 +268,9 @@ export function SurveyResponse() {
             Enviar Respostas (Anônimo)
           </button>
         </form>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

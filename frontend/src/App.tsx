@@ -5,6 +5,7 @@ import { SurveyResponse } from './pages/SurveyResponse';
 import { ActionPlans } from './pages/ActionPlans';
 import { Login } from './pages/Login';
 import { SuperAdmin } from './pages/SuperAdmin';
+import { ConsultantPanel } from './pages/ConsultantPanel';
 import { Users } from './pages/Users';
 import { Layout } from './components/Layout';
 
@@ -15,6 +16,7 @@ export function App() {
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/superadmin" element={<SuperAdmin />} />
+        <Route path="/consultant" element={<ConsultantPanel />} />
         <Route path="/survey/:id" element={<SurveyResponse />} />
 
         {/* Authenticated Routes wrapped in Layout */}

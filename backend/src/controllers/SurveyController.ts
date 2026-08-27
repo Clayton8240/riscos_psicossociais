@@ -148,10 +148,32 @@ export class SurveyController {
     */
 
     try {
-      const survey = await prisma.survey.findUnique({ where: { id } });
+      const survey = await prisma.survey.findUnique({
+        where: { id },
+        include: {
+          tenant: {
+            include: { subscription: true }
+          }
+        }
+      });
 
       if (!survey || !survey.isActive) {
         return res.status(400).json({ error: 'Pesquisa inválida ou inativa' });
+      }
+
+      const subscription = survey.tenant?.subscription;
+      if (subscription && !['DEMAND', 'LICENSE'].includes(subscription.planType)) {
+        const totalSubmissions = await prisma.submission.count({
+          where: {
+            survey: {
+              tenant: { subscriptionId: subscription.id }
+            }
+          }
+        });
+
+        if (totalSubmissions >= subscription.maxSubmissions) {
+          return res.status(403).json({ error: 'Limite de vidas/avaliações excedido para o plano atual. Contate o consultor ou faça upgrade.' });
+        }
       }
 
       const submission = await prisma.submission.create({

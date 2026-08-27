@@ -125,13 +125,13 @@ export class AnalyticsController {
 
       const submissionsMatrix: number[][] = [];
 
-      survey.submissions.forEach(sub => {
+      survey.submissions.forEach((sub: any) => {
         const sector = sub.sector || 'Geral';
         if (!sectorDataPoints[sector]) sectorDataPoints[sector] = [];
         
         const subScores: number[] = new Array(survey.questions.length).fill(0);
 
-        sub.answers.forEach(a => {
+        sub.answers.forEach((a: any) => {
           if (a.probabilityScore && a.impactScore) {
             const risk = a.probabilityScore * a.impactScore;
             

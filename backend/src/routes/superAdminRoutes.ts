@@ -11,7 +11,13 @@ superAdminRoutes.use(authMiddleware, superAdminMiddleware);
 
 superAdminRoutes.get('/tenants', superAdminController.listTenants);
 superAdminRoutes.post('/tenants', superAdminController.createTenant);
+superAdminRoutes.put('/tenants/:id', superAdminController.updateTenant);
 superAdminRoutes.delete('/tenants/:id', superAdminController.deleteTenant);
 superAdminRoutes.post('/tenants/:id/impersonate', superAdminController.impersonateTenant);
+
+superAdminRoutes.get('/consultants', superAdminController.listConsultants);
+superAdminRoutes.post('/consultants', superAdminController.createConsultant);
+superAdminRoutes.put('/consultants/:id', superAdminController.updateConsultant);
+superAdminRoutes.delete('/consultants/:id', superAdminController.deleteConsultant);
 
 export { superAdminRoutes };
