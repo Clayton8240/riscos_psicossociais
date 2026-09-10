@@ -179,3 +179,173 @@ button, input, select, textarea {
   h1 { font-size: 24px !important; }
   h2 { font-size: 20px !important; }
 }
+
+/* --------------------------------------
+   Layout Mobile (Dashboard)
+   -------------------------------------- */
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 64px;
+  background-color: #1E2638;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  z-index: 50;
+  transition: transform 0.3s ease;
+}
+
+.app-main {
+  margin-left: 64px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-navbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+.app-content {
+  padding: 0 32px 32px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    z-index: 999;
+  }
+  .app-sidebar .sidebar-top-icon, .app-sidebar .sidebar-spacer {
+    display: none !important;
+  }
+  .app-sidebar .sidebar-nav {
+    flex-direction: row !important;
+    gap: 0 !important;
+    width: auto !important;
+    flex: 1;
+    justify-content: space-around;
+  }
+  .app-sidebar .sidebar-bottom {
+    width: auto !important;
+    flex-direction: row !important;
+    padding-right: 16px;
+  }
+  .app-main {
+    margin-left: 0;
+    margin-bottom: 64px; /* Space for bottom nav */
+  }
+  .app-navbar {
+    padding: 16px;
+    flex-direction: column;
+    height: auto;
+    gap: 16px;
+  }
+  .app-navbar h1 {
+    font-size: 14px !important;
+    text-align: center;
+  }
+  .app-content {
+    padding: 0 16px 16px 16px;
+  }
+}
+
+/* --------------------------------------
+   SuperAdmin Layout
+   -------------------------------------- */
+.superadmin-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  font-family: system-ui, sans-serif;
+}
+
+.superadmin-sidebar {
+  width: 280px;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.superadmin-content {
+  flex: 1;
+  padding: 48px;
+  overflow-y: auto;
+}
+
+.superadmin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 768px) {
+  .superadmin-container {
+    flex-direction: column;
+  }
+  .superadmin-sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .superadmin-sidebar nav {
+    flex-direction: row !important;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    gap: 8px !important;
+  }
+  .superadmin-sidebar nav button {
+    white-space: nowrap;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+  }
+  .superadmin-sidebar > div:last-child {
+    display: none; /* Hide 'Sair do Painel' at the bottom of sidebar to save space, or style it inline */
+  }
+  .superadmin-content {
+    padding: 16px;
+  }
+  .superadmin-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    text-align: center;
+  }
+  .superadmin-header h2 {
+    font-size: 24px !important;
+  }
+  .superadmin-header button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -10,6 +10,10 @@ O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0
 - **Gestão Dinâmica de Gateways de Pagamento:** Inclusão de aba dedicada no Painel Super Admin para o gerenciamento de chaves de API (Stripe Secret, Stripe Webhook, Asaas, MercadoPago, PayPal), sendo armazenadas diretamente no banco de dados (`SystemConfig`) em vez de arquivos `.env`.
 - **Aba "Meu Perfil" no Super Admin:** Nova seção para que o administrador do sistema consiga atualizar seu nome, e-mail e principalmente modificar sua própria senha de forma segura.
 
+### Modificado
+- **Refatoração UI/UX do Super Admin:** O Painel do Super Admin foi completamente reescrito para utilizar um layout profissional com Menu Lateral (Sidebar) fixo, eliminando a poluição visual. Os formulários de criação de novas empresas e consultores agora abrem de forma limpa em Modais modernos sobrepostos à tela.
+- **Otimização para Dispositivos Móveis (Mobile-Friendly):** Toda a interface do sistema (Super Admin, Consultor e Dashboard do Cliente) recebeu ajustes avançados de responsividade. Em smartphones, a navegação principal agora funciona como uma elegante *Bottom Navigation Bar* (Barra inferior), facilitando o uso com uma única mão. Telas e tabelas foram otimizadas com rolagem horizontal nativa para não quebrar o layout.
+
 ## [1.3.0] - 2026-08-27
 
 ### Adicionado

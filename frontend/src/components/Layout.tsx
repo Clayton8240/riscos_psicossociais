@@ -117,27 +117,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-main)', display: 'flex', flexDirection: 'column' }}>
       
       {/* Sidebar (Fixed Left) */}
-      <aside style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        height: '100vh',
-        width: SIDEBAR_WIDTH,
-        backgroundColor: '#1E2638', // Slightly different dark from brand for depth, matching the image sidebar
-        borderRight: '1px solid rgba(255,255,255,0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '16px 0',
-        zIndex: 50,
-      }}>
+      <aside className="app-sidebar">
         {/* Menu Icon Top */}
-        <div style={{ cursor: 'pointer', color: 'var(--text-secondary)', marginBottom: '24px' }}>
+        <div className="sidebar-top-icon" style={{ cursor: "pointer", color: "var(--text-secondary)", marginBottom: "24px" }}>
           <Menu size={24} />
         </div>
 
         {/* Navigation Icons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+        <div className="sidebar-nav" style={{ display: "flex", flexDirection: "column", gap: "20px", width: "100%" }}>
           <button onClick={() => navigate('/dashboard')} style={{ background: 'rgba(0,255,133,0.1)', border: 'none', borderLeft: '3px solid var(--primary)', padding: '10px 0', cursor: 'pointer', display: 'flex', justifyContent: 'center', color: 'var(--primary)', width: '100%' }}>
             <Home size={22} />
           </button>
@@ -152,10 +139,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <div style={{ flex: 1 }} />
+        <div className="sidebar-spacer" style={{ flex: 1 }} />
 
         {/* Bottom Icons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', alignItems: 'center' }}>
+        <div className="sidebar-bottom" style={{ display: "flex", flexDirection: "column", gap: "20px", width: "100%", alignItems: "center" }}>
           <button onClick={() => setShowSettingsModal(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
             <Settings size={22} />
           </button>
@@ -163,18 +150,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Container */}
-      <div style={{ marginLeft: SIDEBAR_WIDTH, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="app-main">
         
         {/* Top Navbar */}
-        <nav style={{ 
-          height: '64px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          padding: '0 32px',
-          backgroundColor: 'transparent',
-          color: 'var(--text-primary)'
-        }}>
+        <nav className="app-navbar">
           <h1 style={{ fontSize: '18px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#E2E8F0', margin: 0 }}>
             Occupational Health & Psychosocial Risk Dashboard
           </h1>
@@ -204,7 +183,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         )}
         
         {/* Main Content Area */}
-        <main style={{ padding: '0 32px 32px 32px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <main className="app-content">
           {children}
         </main>
 
