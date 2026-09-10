@@ -18,20 +18,46 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 class SettingsController {
     getProfile(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a, _b, _c;
+            var _a, _b, _c, _d, _e, _f, _g;
             try {
                 const user = yield prismaClient_1.prisma.user.findUnique({
                     where: { id: (_a = req.user) === null || _a === void 0 ? void 0 : _a.id },
-                    include: { tenant: true }
+                    include: {
+                        tenant: {
+                            include: { subscription: true }
+                        }
+                    }
                 });
                 if (!user)
                     return res.status(404).json({ error: 'Usuário não encontrado' });
+                let companyName = ((_b = user.tenant) === null || _b === void 0 ? void 0 : _b.name) || '';
+                let sectors = ((_c = user.tenant) === null || _c === void 0 ? void 0 : _c.sectors) || '[]';
+                let subscription = ((_d = user.tenant) === null || _d === void 0 ? void 0 : _d.subscription) || null;
+                if (((_e = req.user) === null || _e === void 0 ? void 0 : _e.tenantId) && req.user.tenantId !== user.tenantId) {
+                    const impersonatedTenant = yield prismaClient_1.prisma.tenant.findUnique({
+                        where: { id: req.user.tenantId },
+                        include: { subscription: true }
+                    });
+                    if (impersonatedTenant) {
+                        companyName = impersonatedTenant.name;
+                        sectors = impersonatedTenant.sectors;
+                        subscription = impersonatedTenant.subscription;
+                    }
+                }
+                let totalSubmissions = 0;
+                if ((_f = req.user) === null || _f === void 0 ? void 0 : _f.tenantId) {
+                    totalSubmissions = yield prismaClient_1.prisma.submission.count({
+                        where: { survey: { tenantId: req.user.tenantId } }
+                    });
+                }
                 return res.json({
                     name: user.name,
                     email: user.email,
-                    role: user.role,
-                    companyName: ((_b = user.tenant) === null || _b === void 0 ? void 0 : _b.name) || '',
-                    sectors: JSON.parse(((_c = user.tenant) === null || _c === void 0 ? void 0 : _c.sectors) || '[]')
+                    role: ((_g = req.user) === null || _g === void 0 ? void 0 : _g.role) || user.role, // Use role from token for impersonation
+                    companyName,
+                    sectors: JSON.parse(sectors),
+                    subscription,
+                    totalSubmissions
                 });
             }
             catch (error) {

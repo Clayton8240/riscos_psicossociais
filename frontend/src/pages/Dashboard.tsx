@@ -1,346 +1,298 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Radar, RadarChart, PolarGrid,
+  PolarAngleAxis, ResponsiveContainer
+} from 'recharts';
+import { Calendar, Flag, XCircle, FileText, BrainCircuit } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { RiskMatrix, RiskData } from '../components/RiskMatrix';
-import { exportToCSV } from '../utils/exportCSV';
 
-interface AnalyticsPayload {
-  surveyTitle: string;
-  totalSubmissions: number;
-  totalValidMatrixResponses: number;
-  riskBySector: RiskData[];
-}
+const Card = ({ children, style }: { children: React.ReactNode, style?: React.CSSProperties }) => (
+  <div style={{
+    backgroundColor: '#1E2638',
+    borderRadius: '12px',
+    padding: '20px',
+    border: '1px solid rgba(255,255,255,0.05)',
+    display: 'flex',
+    flexDirection: 'column',
+    ...style
+  }}>
+    {children}
+  </div>
+);
+
+const CardTitle = ({ title, extra }: { title: string, extra?: React.ReactNode }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</h3>
+    {extra || <div style={{ color: 'var(--text-muted)' }}>⋮</div>}
+  </div>
+);
 
 export function Dashboard() {
-  const { id } = useParams<{ id: string }>(); 
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [data, setData] = useState<AnalyticsPayload | null>(null);
-  const [surveys, setSurveys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Data for list view
+  const [surveys, setSurveys] = useState<any[]>([]);
 
-  const [aiReport, setAiReport] = useState<string | null>(null);
-  const [loadingReport, setLoadingReport] = useState(false);
-  const [showMethodology, setShowMethodology] = useState(false);
-
-  const handleGenerateReport = async () => {
-    if (!id) return;
-    setLoadingReport(true);
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3333';
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${apiUrl}/analytics/surveys/${id}/report`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        const json = await response.json();
-        setAiReport(json.report);
-      } else {
-        alert('Erro ao gerar relatório.');
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Erro de conexão ao gerar relatório.');
-    } finally {
-      setLoadingReport(false);
-    }
-  };
+  // Data for single survey view
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [report, setReport] = useState<string>('');
 
   useEffect(() => {
-    async function fetchDashboardData() {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3333';
-      const token = localStorage.getItem('token');
-      
-      try {
-        if (id) {
-          // Busca analytics da pesquisa
-          const response = await fetch(`${apiUrl}/analytics/surveys/${id}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const json = await response.json();
-            setData(json);
-          }
-        } else {
-          // Busca lista de pesquisas
-          const response = await fetch(`${apiUrl}/surveys`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const list = await response.json();
-            setSurveys(list);
-          }
-        }
-      } catch (error) {
-        console.error("Erro de conexão", error);
-      } finally {
-        setLoading(false);
-      }
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3333';
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      navigate('/login');
+      return;
     }
 
-    fetchDashboardData();
-  }, [id]);
-
-  const handleDeleteSurvey = async (surveyId: string) => {
-    if (!window.confirm("Tem certeza que deseja apagar esta pesquisa e todas as suas respostas?")) return;
-
-    try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3333';
-      const token = localStorage.getItem('token');
-      
-      const response = await fetch(`${apiUrl}/surveys/${surveyId}`, {
-        method: 'DELETE',
+    if (!id) {
+      // Fetch surveys list
+      fetch(`${apiUrl}/surveys`, {
         headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        setSurveys(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
       });
+    } else {
+      // Fetch analytics for specific survey
+      const fetchAnalytics = fetch(`${apiUrl}/analytics/surveys/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(res => res.json());
 
-      if (response.ok) {
-        // Remover da lista local
-        setSurveys(prev => prev.filter(s => s.id !== surveyId));
-      } else {
-        alert("Erro ao deletar a pesquisa.");
-      }
-    } catch (error) {
-      console.error("Erro ao deletar", error);
-      alert("Erro de conexão ao deletar a pesquisa.");
+      const fetchReport = fetch(`${apiUrl}/analytics/surveys/${id}/report`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(res => res.json());
+
+      Promise.all([fetchAnalytics, fetchReport])
+        .then(([analyticsRes, reportRes]) => {
+          setAnalyticsData(analyticsRes);
+          if (reportRes && reportRes.report) {
+            setReport(reportRes.report);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
     }
-  };
-
-  const handleCopyLink = (surveyId: string) => {
-    const publicUrl = `${window.location.origin}/survey/${surveyId}`;
-    navigator.clipboard.writeText(publicUrl).then(() => {
-      alert('Link público copiado para a área de transferência!');
-    }).catch(() => {
-      alert('Falha ao copiar o link. Você pode copiar manualmente: ' + publicUrl);
-    });
-  };
+  }, [id, navigate]);
 
   if (loading) {
-    return <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>Carregando Dashboard...</div>;
+    return <div style={{ color: 'var(--text-primary)' }}>Carregando dados do dashboard...</div>;
   }
 
-  // Visualização de Lista de Pesquisas
   if (!id) {
+    // List view
     return (
-      <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div className="responsive-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-            <div>
-              <h1 style={{ fontSize: '32px', color: 'var(--primary-dark)', margin: '0 0 8px 0', fontWeight: '800' }}>Dashboard Analítico</h1>
-              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '16px' }}>Selecione uma pesquisa para ver os resultados.</p>
-            </div>
-            <button 
-              onClick={() => navigate('/surveys/manager')}
-              style={{ padding: '12px 24px', backgroundColor: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '16px', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)' }}
-            >
-              + Nova Pesquisa
-            </button>
-          </div>
-
-        {surveys.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', backgroundColor: 'var(--bg-main)', borderRadius: '8px', border: '1px dashed var(--border-color-dark)' }}>
-            Nenhuma pesquisa encontrada. Crie sua primeira pesquisa para começar.
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {surveys.map(survey => (
-              <div key={survey.id} className="responsive-flex mobile-p-16" style={{ justifyContent: 'space-between', alignItems: 'center', padding: '24px', border: 'none', borderRadius: '12px', backgroundColor: 'var(--bg-card)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
-                <div>
-                  <h3 style={{ margin: '0 0 8px 0', color: 'var(--primary-dark)', fontSize: '20px' }}>{survey.title}</h3>
-                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--success)' }}></span>
-                    Respostas: <strong style={{ color: 'var(--text-secondary)' }}>{survey._count?.submissions || 0}</strong>
-                  </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1 }}>
+        <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '600', color: '#E2E8F0' }}>Meus Dashboards</h2>
+        <p style={{ color: 'var(--text-muted)' }}>Selecione uma pesquisa abaixo para visualizar a análise completa e 100% anônima.</p>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+          {surveys.length === 0 ? (
+            <div style={{ color: 'var(--text-muted)' }}>Nenhuma pesquisa encontrada.</div>
+          ) : (
+            surveys.map((survey: any) => (
+              <Card key={survey.id} style={{ cursor: 'pointer', transition: 'all 0.2s' }} >
+                <div onClick={() => navigate(`/dashboard/${survey.id}`)}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'rgba(0,255,133,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
+                      <FileText size={20} />
+                    </div>
+                    <h3 style={{ margin: 0, color: 'white', fontSize: '16px' }}>{survey.title}</h3>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    Criado em: {new Date(survey.createdAt).toLocaleDateString('pt-BR')}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <button 
-                    onClick={() => handleCopyLink(survey.id)}
-                    style={{ padding: '8px 16px', backgroundColor: 'var(--bg-hover)', color: 'var(--text-muted)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', transition: 'background-color 0.2s' }}
-                  >
-                    🔗 Copiar Link
-                  </button>
-                  <button 
-                    onClick={() => navigate(`/dashboard/${survey.id}`)}
-                    style={{ padding: '8px 16px', backgroundColor: 'var(--primary-bg)', color: 'var(--primary)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}
-                  >
-                    Ver Resultados
-                  </button>
-                  <button 
-                    onClick={() => handleDeleteSurvey(survey.id)}
-                    style={{ padding: '8px 16px', backgroundColor: 'var(--danger-bg)', color: 'var(--danger)', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}
-                  >
-                    Excluir
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              </Card>
+            ))
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
-
-// Visualização do Analytics (se tem ID mas não achou os dados)
-  if (!data) {
-    return <div style={{ padding: '40px', color: 'red', fontFamily: 'sans-serif' }}>Nenhum dado encontrado para esta pesquisa.</div>;
+    );
   }
+
+  // Dashboard View (Single Survey)
+  
+  if (!analyticsData || analyticsData.error) {
+    return (
+      <div style={{ color: 'var(--text-primary)' }}>
+        {analyticsData?.error || 'Erro ao carregar dados do dashboard.'}
+        <br/><br/>
+        <button onClick={() => navigate('/dashboard')} style={{ padding: '8px 16px', background: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Voltar</button>
+      </div>
+    );
+  }
+
+  const hasData = analyticsData.totalValidMatrixResponses > 0;
+
+  // Radar data mapped from riskBySector (sectors as axes)
+  const radarData = hasData ? analyticsData.riskBySector?.map((r: any) => ({
+    subject: r.sector.substring(0, 15), // Trucate long sector names
+    A: r.averageRiskScore, // Real risk score
+    fullMark: 9 // Maximum risk score
+  })) : [
+    { subject: 'TI', A: 0, fullMark: 9 },
+    { subject: 'RH', A: 0, fullMark: 9 },
+    { subject: 'Comercial', A: 0, fullMark: 9 },
+    { subject: 'Operacional', A: 0, fullMark: 9 },
+    { subject: 'Admin', A: 0, fullMark: 9 },
+  ];
+
+  // Critical alerts
+  const criticalSectors = hasData ? analyticsData.riskBySector?.filter((r: any) => r.averageRiskScore >= 6) : [];
 
   return (
-    <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <button 
-          onClick={() => navigate('/dashboard')}
-          style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', marginBottom: '24px', padding: 0, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}
-        >
-          &larr; Voltar para as pesquisas
-        </button>
-
-        <div className="responsive-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <h1 style={{ fontSize: '32px', color: 'var(--primary-dark)', margin: 0, fontWeight: '800' }}>
-            {data.surveyTitle}
-          </h1>
-          <button 
-            onClick={() => {
-              const headers = ['Setor', 'Score de Probabilidade', 'Score de Impacto', 'Fator de Risco', 'Nível de Risco', 'Total de Respostas (Setor)'];
-              const csvData = data.riskBySector.map((r: any) => [
-                r.sector,
-                (r.averageProbability || r.avgProbability || 0).toFixed(2),
-                (r.averageImpact || r.avgImpact || 0).toFixed(2),
-                (r.score || r.riskFactor || 0).toFixed(2),
-                r.riskLevel,
-                r.count || r.totalSubmissions || 0
-              ]);
-              exportToCSV(`riscos_${data.surveyTitle.replace(/\\s+/g, '_')}.csv`, headers, csvData);
-            }}
-            style={{ padding: '10px 16px', backgroundColor: 'var(--success)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}
-          >
-            Exportar Resultados CSV
-          </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', flex: 1, paddingBottom: '40px' }}>
+      
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div>
+          <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: 0, marginBottom: '8px', fontSize: '13px', fontWeight: '500' }}>← Voltar aos Dashboards</button>
+          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '600', color: '#E2E8F0' }}>{analyticsData.surveyTitle || 'Overview'}</h2>
         </div>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '40px', fontSize: '16px' }}>
-          Visão geral dos Riscos Psicossociais na Empresa
-        </p>
-
-        {/* Cards de Resumo */}
-        <div className="responsive-grid-2" style={{ marginBottom: '48px' }}>
-          <div style={{ padding: '32px', backgroundColor: 'var(--bg-card)', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <h4 style={{ color: 'var(--text-muted)', margin: '0 0 12px 0', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total de Submissões</h4>
-            <p style={{ fontSize: '48px', fontWeight: '900', margin: 0, color: 'var(--primary-dark)', lineHeight: '1' }}>
-              {data.totalSubmissions}
-            </p>
-          </div>
-          <div style={{ padding: '32px', backgroundColor: 'var(--bg-card)', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <h4 style={{ color: 'var(--text-muted)', margin: '0 0 12px 0', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Formulários Válidos</h4>
-            <p style={{ fontSize: '48px', fontWeight: '900', margin: 0, color: 'var(--primary-dark)', lineHeight: '1' }}>
-              {data.totalValidMatrixResponses}
-            </p>
-          </div>
-        </div>
-
-      {/* Componente Visual: A Matriz de Risco (Probabilidade x Impacto) */}
-      <RiskMatrix data={data.riskBySector} />
-
-      <div style={{ marginTop: '48px', padding: '32px', backgroundColor: 'var(--bg-card)', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-        <div className="responsive-flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, color: 'var(--primary-dark)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '24px', fontWeight: '800' }}>
-            <span style={{ fontSize: '28px' }}>🧠</span> Relatório Analítico
-          </h3>
-          <button 
-            onClick={() => setShowMethodology(true)}
-            style={{ padding: '8px 16px', backgroundColor: 'var(--bg-hover)', color: 'var(--text-muted)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
-            title="Aprenda sobre o Alfa de Cronbach e Desvio Padrão"
-          >
-            ⓘ Metodologia e Cálculos
-          </button>
-        </div>
-        <p style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '15px' }}>
-          Gere um relatório analítico profundo sobre os dados desta pesquisa. O relatório destaca os pontos críticos e fornece insights estatísticos rigorosos baseados em psicometria.
-        </p>
-        
-        {!aiReport && (
-          <button 
-            onClick={handleGenerateReport}
-            disabled={loadingReport}
-            style={{ 
-              padding: '14px 28px', 
-              backgroundColor: 'var(--primary)', 
-              color: 'var(--bg-card)', 
-              border: 'none', 
-              borderRadius: '8px', 
-              cursor: loadingReport ? 'not-allowed' : 'pointer', 
-              fontWeight: '600',
-              fontSize: '16px',
-              boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
-            }}
-          >
-            {loadingReport ? 'Analisando dados...' : 'Gerar Relatório Analítico'}
-          </button>
-        )}
-
-        {loadingReport && <p style={{ color: 'var(--primary)', fontWeight: '600' }}>Analisando dados...</p>}
-        {aiReport && (
-          <div style={{ marginTop: '24px', padding: '32px', backgroundColor: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.7' }}>
-            <ReactMarkdown>{aiReport}</ReactMarkdown>
-          </div>
-        )}
-      </div>
-
-      {showMethodology && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'rgba(17, 24, 39, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(4px)'
+        <button style={{ 
+          display: 'flex', alignItems: 'center', gap: '8px', 
+          backgroundColor: 'rgba(0,255,133,0.15)', color: 'var(--primary)', 
+          border: '1px solid rgba(0,255,133,0.3)', padding: '8px 16px', borderRadius: '6px', fontWeight: '500' 
         }}>
-          <div style={{ backgroundColor: 'var(--bg-card)', padding: '40px', borderRadius: '16px', maxWidth: '650px', width: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h2 style={{ margin: 0, color: 'var(--primary-dark)', fontSize: '24px', fontWeight: '800' }}>Metodologia Estatística 📐</h2>
-              <button onClick={() => setShowMethodology(false)} style={{ border: 'none', background: 'transparent', fontSize: '24px', cursor: 'pointer', color: 'var(--text-placeholder)', display: 'flex', padding: 0 }}>✖</button>
-            </div>
-            
-            <p style={{ color: 'var(--text-muted)', lineHeight: '1.7', fontSize: '16px', marginBottom: '32px' }}>
-              Nosso motor utiliza cálculos matemáticos robustos, garantindo 100% de privacidade offline e precisão clínica para analisar a saúde psicossocial do ambiente.
-            </p>
+          <Calendar size={16} />
+          Análise de Risco
+        </button>
+      </div>
 
-            <div style={{ marginBottom: '24px' }}>
-              <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '16px', fontWeight: '700' }}>1. Risco Populacional (Média μ)</h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.6', margin: 0 }}>
-                Calculamos a média aritmética de todo o grupo cruzando Probabilidade $\\times$ Impacto de cada resposta isolada. Gera um farol direcional: Saudável, Atenção ou Crítico.
-              </p>
+      {/* Top Cards: Participation & Alerts */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+        
+        {/* Survey Participation */}
+        <Card style={{ justifyContent: 'center' }}>
+          <CardTitle title="PARTICIPAÇÃO NA PESQUISA" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px' }}>
+            <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '6px solid', borderColor: hasData ? 'var(--primary)' : 'var(--text-muted)', borderRightColor: 'rgba(255,255,255,0.1)' }}>
             </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '16px', fontWeight: '700' }}>2. Polarização de Equipes (Desvio Padrão σ)</h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.6', margin: 0 }}>
-                Medimos o quanto as respostas se distanciam da média (variância). Se um setor tem uma média "normal", mas o <strong style={{ color: 'var(--text-secondary)' }}>Desvio Padrão é alto</strong>, disparamos um alerta de <strong style={{ color: 'var(--text-secondary)' }}>Polarização</strong>: isso significa que metade do time está perfeitamente bem, e a outra metade está à beira de um burnout silencioso.
-              </p>
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)', fontSize: '16px', fontWeight: '700' }}>3. Confiabilidade (Alfa de Cronbach α)</h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '15px', lineHeight: '1.6', margin: 0 }}>
-                Utilizado na psicometria, o Alfa de Cronbach mede a consistência interna das respostas (variando de 0 a 1). Se as pessoas dão respostas muito incoerentes para o mesmo fator gerador de estresse, o Alfa cai.
-                <br/><br/>
-                <span style={{ display: 'inline-block', backgroundColor: 'var(--success-bg)', color: 'var(--success-text)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', fontWeight: '600', marginRight: '8px' }}>&ge; 0.8: Excelente</span> 
-                <span style={{ display: 'inline-block', backgroundColor: 'var(--danger-bg)', color: 'var(--danger-text)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px', fontWeight: '600' }}>&lt; 0.6: Inaceitável</span>
-              </p>
-            </div>
-
-            <div style={{ marginTop: '32px', padding: '16px 20px', backgroundColor: 'var(--bg-hover)', borderRadius: '8px', borderLeft: '4px solid var(--primary-dark)' }}>
-              <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-                <strong style={{ color: 'var(--text-secondary)' }}>Auditoria Rigorosa:</strong> Nenhuma matriz de risco é enviada para servidores de Inteligência Artificial em nuvem. Todo o processamento é interno e imutável.
-              </p>
-            </div>
-
-            <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'flex-end' }}>
-              <button 
-                onClick={() => setShowMethodology(false)}
-                style={{ padding: '12px 24px', backgroundColor: 'var(--primary)', color: 'var(--bg-card)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '15px' }}
-              >
-                Fechar Metodologia
-              </button>
+            <div>
+              <div style={{ fontSize: '42px', fontWeight: '800', color: 'white', lineHeight: '1' }}>{analyticsData.totalSubmissions}</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>Respostas Totais (100% Anônimas)</div>
             </div>
           </div>
-        </div>
-      )}
+        </Card>
+
+        {/* Key Alerts & Action Items */}
+        <Card>
+           <CardTitle title="ALERTAS CRÍTICOS & SETORES DE RISCO" />
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', paddingRight: '8px', maxHeight: '120px' }}>
+              {!hasData ? (
+                <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Aguardando coleta de dados para emitir alertas.</div>
+              ) : criticalSectors.length === 0 ? (
+                <div style={{ color: 'var(--primary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                   <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--primary)' }}/> Nenhum setor em estado de alerta vermelho.
+                </div>
+              ) : (
+                criticalSectors.map((item: any, idx: number) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', backgroundColor: 'rgba(239, 68, 68, 0.05)', padding: '10px 12px', borderRadius: '8px', borderLeft: '3px solid #EF4444' }}>
+                    <div style={{ color: '#EF4444', marginTop: '2px' }}><Flag size={18} fill={'#EF4444'} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#EF4444', marginBottom: '2px' }}>Atenção Imediata: Setor {item.sector}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Média de Risco Elevada: {item.averageRiskScore} / 9</div>
+                    </div>
+                  </div>
+                ))
+              )}
+           </div>
+        </Card>
+
       </div>
+
+      {/* Main Analysis Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+        
+        {/* Radar Chart: Risk by Sector */}
+        <Card>
+          <CardTitle title="MAPEAMENTO DE RISCO POR SETOR" />
+          <div style={{ flex: 1, minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
+                <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 12, fontWeight: 500 }} />
+                <Radar name="Nível de Risco" dataKey="A" stroke="var(--primary)" strokeWidth={2} fill="var(--primary)" fillOpacity={0.4} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
+             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '12px', height: '3px', backgroundColor: 'var(--primary)' }}/> Risco Atual</span>
+          </div>
+        </Card>
+
+        {/* AI Deterministic Report */}
+        <Card style={{ overflow: 'hidden' }}>
+          <CardTitle 
+            title="RELATÓRIO ANALÍTICO EXECUTIVO" 
+            extra={<div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', fontSize: '13px', fontWeight: '500', backgroundColor: 'rgba(0,255,133,0.1)', padding: '4px 10px', borderRadius: '12px' }}><BrainCircuit size={16} /> Análise Computacional</div>} 
+          />
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '12px', maxHeight: '500px' }} className="markdown-report">
+            {report ? (
+              <ReactMarkdown>{report}</ReactMarkdown>
+            ) : (
+              <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '40px' }}>O relatório será gerado automaticamente quando houverem dados suficientes.</div>
+            )}
+          </div>
+        </Card>
+
+      </div>
+      
+      {/* Styles for markdown content */}
+      <style>{`
+        .markdown-report {
+          color: var(--text-secondary);
+          font-size: 14.5px;
+          line-height: 1.6;
+        }
+        .markdown-report h1, .markdown-report h2, .markdown-report h3 {
+          color: #E2E8F0;
+          margin-top: 24px;
+          margin-bottom: 12px;
+          font-weight: 600;
+        }
+        .markdown-report h1 { font-size: 20px; }
+        .markdown-report h2 { font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
+        .markdown-report p { margin-bottom: 16px; }
+        .markdown-report ul { margin-bottom: 16px; padding-left: 20px; }
+        .markdown-report li { margin-bottom: 8px; }
+        .markdown-report blockquote {
+          border-left: 4px solid var(--primary);
+          background: rgba(0,255,133,0.05);
+          padding: 12px 16px;
+          margin: 0 0 16px 0;
+          border-radius: 0 8px 8px 0;
+          color: var(--text-primary);
+        }
+        .markdown-report code {
+          background: rgba(255,255,255,0.1);
+          padding: 2px 6px;
+          border-radius: 4px;
+          color: var(--primary);
+          font-family: monospace;
+          font-weight: bold;
+        }
+        .markdown-report hr {
+          border: 0;
+          height: 1px;
+          background: rgba(255,255,255,0.1);
+          margin: 24px 0;
+        }
+      `}</style>
     </div>
   );
 }

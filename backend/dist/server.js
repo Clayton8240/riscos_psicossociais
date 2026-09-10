@@ -16,11 +16,13 @@ app.use((0, cors_1.default)({
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
+// Permite raw body na rota do webhook do Stripe antes do express.json()
+app.use('/checkout/webhook', express_1.default.raw({ type: 'application/json' }));
 app.use(express_1.default.json());
 // Configuração do Rate Limiter para impedir robôs e spam
 const limiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100, // Limite de 100 requisições por IP por janela de 15 min
+    max: 10000, // Limite absurdamente alto para desenvolvimento local
     message: { error: 'Muitas requisições originadas deste IP, por favor tente novamente após 15 minutos.' },
     standardHeaders: true, // Retorna os headers `RateLimit-*`
     legacyHeaders: false, // Desabilita o cabeçalho `X-RateLimit-*`

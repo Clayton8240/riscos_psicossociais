@@ -346,4 +346,51 @@ export class SuperAdminController {
     }
   }
 
+  // Retorna configurações globais (ex: pagamentos)
+  async getPaymentSettings(req: Request, res: Response) {
+    try {
+      const configs = await prisma.systemConfig.findMany();
+      const settings: Record<string, any> = {};
+      
+      // Converte array de chave/valor para um objeto
+      configs.forEach((c) => {
+        try {
+          settings[c.key] = JSON.parse(c.value);
+        } catch {
+          settings[c.key] = c.value;
+        }
+      });
+      return res.json(settings);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao buscar configurações de pagamento' });
+    }
+  }
+
+  // Atualiza configurações globais
+  async updatePaymentSettings(req: Request, res: Response) {
+    try {
+      const updates = req.body; // { stripe_key: "...", payment_method_pix_enabled: true }
+      
+      const transactions = Object.entries(updates).map(([key, value]) => {
+        const stringValue = typeof value === 'object' || typeof value === 'boolean' 
+          ? JSON.stringify(value) 
+          : String(value);
+
+        return prisma.systemConfig.upsert({
+          where: { key },
+          update: { value: stringValue },
+          create: { key, value: stringValue }
+        });
+      });
+
+      await prisma.$transaction(transactions);
+
+      return res.json({ message: 'Configurações de pagamento salvas com sucesso' });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Erro ao salvar configurações de pagamento' });
+    }
+  }
+
 }

@@ -7,18 +7,34 @@ export class SettingsController {
     try {
       const user = await prisma.user.findUnique({
         where: { id: req.user?.id },
-        include: { tenant: true }
+        include: { 
+          tenant: {
+            include: { subscription: true }
+          }
+        }
       });
       if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
       let companyName = user.tenant?.name || '';
       let sectors = user.tenant?.sectors || '[]';
+      let subscription = user.tenant?.subscription || null;
 
       if (req.user?.tenantId && req.user.tenantId !== user.tenantId) {
-        const impersonatedTenant = await prisma.tenant.findUnique({ where: { id: req.user.tenantId } });
+        const impersonatedTenant = await prisma.tenant.findUnique({ 
+          where: { id: req.user.tenantId },
+          include: { subscription: true }
+        });
         if (impersonatedTenant) {
           companyName = impersonatedTenant.name;
           sectors = impersonatedTenant.sectors;
+          subscription = impersonatedTenant.subscription;
         }
+      }
+
+      let totalSubmissions = 0;
+      if (req.user?.tenantId) {
+        totalSubmissions = await prisma.submission.count({
+          where: { survey: { tenantId: req.user.tenantId } }
+        });
       }
 
       return res.json({
@@ -26,7 +42,9 @@ export class SettingsController {
         email: user.email,
         role: req.user?.role || user.role, // Use role from token for impersonation
         companyName,
-        sectors: JSON.parse(sectors)
+        sectors: JSON.parse(sectors),
+        subscription,
+        totalSubmissions
       });
     } catch (error) {
       return res.status(500).json({ error: 'Erro ao buscar perfil' });

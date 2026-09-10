@@ -121,12 +121,12 @@ class AnalyticsController {
                     questionIndexMap[q.id] = idx;
                 });
                 const submissionsMatrix = [];
-                survey.submissions.forEach(sub => {
+                survey.submissions.forEach((sub) => {
                     const sector = sub.sector || 'Geral';
                     if (!sectorDataPoints[sector])
                         sectorDataPoints[sector] = [];
                     const subScores = new Array(survey.questions.length).fill(0);
-                    sub.answers.forEach(a => {
+                    sub.answers.forEach((a) => {
                         if (a.probabilityScore && a.impactScore) {
                             const risk = a.probabilityScore * a.impactScore;
                             // Setor

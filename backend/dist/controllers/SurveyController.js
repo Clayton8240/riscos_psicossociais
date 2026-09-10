@@ -139,6 +139,7 @@ class SurveyController {
     // Endpoint Público: Colaborador submete a resposta
     submitResponse(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
             const { id } = req.params; // surveyId
             const { sector, answers } = req.body; // Anonimato garantido, sem nome/email
             /*
@@ -149,9 +150,41 @@ class SurveyController {
               ]
             */
             try {
-                const survey = yield prismaClient_1.prisma.survey.findUnique({ where: { id } });
+                const survey = yield prismaClient_1.prisma.survey.findUnique({
+                    where: { id },
+                    include: {
+                        tenant: {
+                            include: { subscription: true }
+                        }
+                    }
+                });
                 if (!survey || !survey.isActive) {
                     return res.status(400).json({ error: 'Pesquisa inválida ou inativa' });
+                }
+                // 1. Validar limite GLOBAL do plano do Consultor (se não for DEMAND/LICENSE)
+                const subscription = (_a = survey.tenant) === null || _a === void 0 ? void 0 : _a.subscription;
+                if (subscription && !['DEMAND', 'LICENSE'].includes(subscription.planType)) {
+                    const totalSubmissionsGlobais = yield prismaClient_1.prisma.submission.count({
+                        where: {
+                            survey: {
+                                tenant: { subscriptionId: subscription.id }
+                            }
+                        }
+                    });
+                    if (totalSubmissionsGlobais >= subscription.maxSubmissions) {
+                        return res.status(403).json({ error: 'Limite global de avaliações excedido para o plano da consultoria. Contate o consultor.' });
+                    }
+                }
+                // 2. Validar limite ESPECÍFICO da empresa (definido pelo Consultor), se houver
+                if ((_b = survey.tenant) === null || _b === void 0 ? void 0 : _b.maxSubmissions) {
+                    const totalSubmissionsTenant = yield prismaClient_1.prisma.submission.count({
+                        where: {
+                            survey: { tenantId: survey.tenant.id }
+                        }
+                    });
+                    if (totalSubmissionsTenant >= survey.tenant.maxSubmissions) {
+                        return res.status(403).json({ error: 'Limite de avaliações excedido para esta empresa. Contate o administrador ou consultor.' });
+                    }
                 }
                 const submission = yield prismaClient_1.prisma.submission.create({
                     data: {

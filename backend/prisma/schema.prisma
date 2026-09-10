@@ -148,9 +148,38 @@ model Subscription {
   maxSubmissions  Int      @default(150)
   
   tenants         Tenant[] // Empresas (Tenants) vinculadas a esta assinatura
+  transactions    Transaction[]
+
+  gateway               String?  // STRIPE, ASAAS, MERCADOPAGO, PAYPAL
+  gatewaySubscriptionId String?  @unique
+  status                String   @default("ACTIVE") // ACTIVE, CANCELED, PAST_DUE
+  nextDueDate           DateTime?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@map("subscriptions")
+}
+
+model SystemConfig {
+  key   String @id
+  value String
+
+  @@map("system_configs")
+}
+
+model Transaction {
+  id                    String       @id @default(uuid())
+  subscriptionId        String
+  subscription          Subscription @relation(fields: [subscriptionId], references: [id])
+  amount                Float
+  currency              String       @default("BRL")
+  gateway               String       // STRIPE, ASAAS, MERCADOPAGO, PAYPAL
+  gatewayTransactionId  String?      @unique
+  status                String       @default("PENDING") // PENDING, PAID, FAILED, REFUNDED
+  paymentMethod         String?      // CREDIT_CARD, PIX, BOLETO
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@map("transactions")
 }

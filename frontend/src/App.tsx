@@ -8,13 +8,27 @@ import { SuperAdmin } from './pages/SuperAdmin';
 import { ConsultantPanel } from './pages/ConsultantPanel';
 import { Users } from './pages/Users';
 import { Layout } from './components/Layout';
+import { Landing } from './pages/Landing';
+import { Register } from './pages/Register';
+import { Plans } from './pages/Plans';
+import { Payment } from './pages/Payment';
+import { ConsultantLanding } from './pages/ConsultantLanding';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
 
 export function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/plans" element={<Plans />} />
+        <Route path="/consultores" element={<ConsultantLanding />} />
+        <Route path="/payment" element={<Payment />} />
+        <Route path="/termos" element={<Terms />} />
+        <Route path="/privacidade" element={<Privacy />} />
+        
         <Route path="/superadmin" element={<SuperAdmin />} />
         <Route path="/consultant" element={<ConsultantPanel />} />
         <Route path="/survey/:id" element={<SurveyResponse />} />

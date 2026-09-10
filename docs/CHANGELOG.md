@@ -3,6 +3,13 @@
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/), e este projeto adere ao [Semantic Versioning](https://semver.org/).
+## [1.4.0] - 2026-09-10
+
+### Adicionado
+- **Integração de Pagamentos com Stripe:** Implementação completa do fluxo de checkout e processamento de webhook do Stripe para assinaturas e planos do sistema.
+- **Gestão Dinâmica de Gateways de Pagamento:** Inclusão de aba dedicada no Painel Super Admin para o gerenciamento de chaves de API (Stripe Secret, Stripe Webhook, Asaas, MercadoPago, PayPal), sendo armazenadas diretamente no banco de dados (`SystemConfig`) em vez de arquivos `.env`.
+- **Aba "Meu Perfil" no Super Admin:** Nova seção para que o administrador do sistema consiga atualizar seu nome, e-mail e principalmente modificar sua própria senha de forma segura.
+
 ## [1.3.0] - 2026-08-27
 
 ### Adicionado
@@ -10,7 +17,6 @@ O formato baseia-se em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0
 - **Painel do Consultor (`/consultant`):** Nova interface permitindo ao consultor gerenciar seus clientes (Tenants), visualizar métricas de uso do plano (empresas cadastradas e pesquisas respondidas) e editar/excluir dados das empresas.
 - **Limite de Respostas por Cliente:** O consultor agora pode definir um limite opcional de respostas (submissões) específico para cada cliente (Tenant), garantindo maior controle sobre o uso de seu plano global.
 - **Opções Avançadas de Cliente:** Permitido ao Consultor e ao Super Admin inativar/ativar um cliente (Tenant) e alterar a senha de seu administrador diretamente de seus painéis, sem a necessidade de exclusão do registro.
-qual o
 ### Corrigido
 - **Distribuição de Limites do Consultor:** Corrigida uma falha onde um consultor conseguia distribuir para as empresas clientes uma quantidade de "Limite de Respostas" superior ao que estava disponível em seu próprio plano global. Agora o sistema faz a soma de todos os limites alocados e barra tentativas que excedam a cota disponível.
 - **Impersonação de Contas:** Consultores e Super Admins agora possuem um botão "Acessar" para entrar de forma transparente na conta de um cliente (Tenant) e realizar a gestão completa (criar pesquisas, extrair relatórios) sem precisar da senha do cliente.

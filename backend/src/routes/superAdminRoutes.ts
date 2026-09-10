@@ -20,4 +20,7 @@ superAdminRoutes.post('/consultants', superAdminController.createConsultant);
 superAdminRoutes.put('/consultants/:id', superAdminController.updateConsultant);
 superAdminRoutes.delete('/consultants/:id', superAdminController.deleteConsultant);
 
+superAdminRoutes.get('/payment-settings', superAdminController.getPaymentSettings);
+superAdminRoutes.put('/payment-settings', superAdminController.updatePaymentSettings);
+
 export { superAdminRoutes };
